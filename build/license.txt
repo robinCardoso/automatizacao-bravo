@@ -1,0 +1,38 @@
+ACORDO DE LICENÇA DE SOFTWARE
+AUTOMATIZADOR BRAVO
+
+Copyright © 2026 Rede União Nacional
+
+TERMOS E CONDIÇÕES DE USO
+
+1. CONCESSÃO DE LICENÇA
+   Este software é licenciado, não vendido. A Rede União Nacional concede
+   a você uma licença limitada, não exclusiva e intransferível para usar
+   o Automatizador Bravo conforme os termos deste acordo.
+
+2. RESTRIÇÕES DE USO
+   - Uso autorizado apenas para empresas da Rede União Nacional
+   - Proibida a redistribuição, cópia ou modificação não autorizada
+   - Proibida a engenharia reversa ou descompilação
+
+3. PROPRIEDADE INTELECTUAL
+   Todo o código-fonte, design e documentação são propriedade exclusiva
+   da Rede União Nacional. Todos os direitos reservados.
+
+4. SUPORTE E ATUALIZAÇÕES
+   Suporte técnico e atualizações estão disponíveis conforme acordo de
+   manutenção estabelecido.
+
+5. LIMITAÇÃO DE RESPONSABILIDADE
+   O software é fornecido "COMO ESTÁ", sem garantias de qualquer tipo.
+   A Rede União Nacional não se responsabiliza por danos diretos ou
+   indiretos resultantes do uso do software.
+
+6. RESCISÃO
+   Esta licença pode ser rescindida automaticamente em caso de violação
+   de qualquer termo deste acordo.
+
+Para mais informações, contate:
+Email: contato@redeuniaonacional.com.br
+
+Ao instalar este software, você concorda com todos os termos acima.

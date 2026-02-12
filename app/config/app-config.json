@@ -1,0 +1,1527 @@
+{
+  "defaultTimeout": 30000,
+  "defaultRetries": 3,
+  "actionDelay": 1000,
+  "headless": true,
+  "schedulerEnabled": false,
+  "presets": [
+    {
+      "id": "a76db722-1b1b-4a53-b5ca-3ac99e5a7bf6",
+      "name": "Bravo Vendas",
+      "sites": [
+        {
+          "id": "site-1769612315557",
+          "name": "Bravo SC",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_sc/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_sc/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\SC-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "SC"
+        },
+        {
+          "id": "site-1769780871859",
+          "name": "Bravo RS",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_rs/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rs/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\RS-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "RS"
+        },
+        {
+          "id": "site-1769784827401",
+          "name": "Bravo PR",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_pr/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_pr/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\PR-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "PR"
+        },
+        {
+          "id": "site-1769795887712",
+          "name": "Bravo SP",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_sp/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_sp/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\SP-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "SP"
+        },
+        {
+          "id": "site-1769795919422",
+          "name": "Bravo MG",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_mg/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_mg/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\MG-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "MG"
+        },
+        {
+          "id": "site-1769795940927",
+          "name": "Bravo RJ",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_rj/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rj/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\RJ-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "RJ"
+        },
+        {
+          "id": "site-1769799652545",
+          "name": "Bravo MT",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_mt/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_mt/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\MT-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "MT"
+        },
+        {
+          "id": "site-1769802176473",
+          "name": "Bravo GO",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_go/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_go/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\GO-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "GO"
+        },
+        {
+          "id": "site-1769802202205",
+          "name": "Bravo ES",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_es/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_es/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\ES-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "ES"
+        },
+        {
+          "id": "site-1769802224666",
+          "name": "Bravo PE",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_pe/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_pe/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\PE-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "PE"
+        },
+        {
+          "id": "site-1769802254594",
+          "name": "Bravo RN",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_rn/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rn/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\RN-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "RN"
+        },
+        {
+          "id": "site-1769802280324",
+          "name": "Bravo RO",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_ro/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ro/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\RO-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "RO"
+        },
+        {
+          "id": "site-1769802352015",
+          "name": "Bravo BA",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_ba/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ba/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\BA-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "BA"
+        },
+        {
+          "id": "site-1769802378319",
+          "name": "Bravo MA",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_ma/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ma/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar",
+              "continueOnError": false
+            },
+            {
+              "type": "hover",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__ferramentas__exportar__item_venda_excel",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "#dataIni,#dataFim",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "input.vermelho",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Vendas\\MA-Vendas",
+          "reportType": "VENDA",
+          "primaryKeys": [
+            "ID",
+            "PRODCOD",
+            "NNF",
+            "Referencia"
+          ],
+          "uf": "MA"
+        }
+      ],
+      "login": "contato@redeuniaonacional.com.br",
+      "password": "@775596@#",
+      "type": "vendas",
+      "destination": "C:\\Relatorios\\Vendas",
+      "createdAt": "2026-01-28T15:56:23.142Z",
+      "lastUsedAt": "2026-02-12T19:17:48.999Z",
+      "schedule": {
+        "enabled": true,
+        "mode": "fixed",
+        "intervalHours": 3,
+        "fixedTimes": [
+          "07:00",
+          "12:30",
+          "18:30"
+        ],
+        "compensationPolicy": "skip",
+        "maxCompensationDelay": 24
+      }
+    },
+    {
+      "id": "2b7b3365-f616-49b4-9638-68545898ad6c",
+      "name": "Bravo Pedidos",
+      "sites": [
+        {
+          "id": "site-1770041833062",
+          "name": "Bravo SC",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_sc/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_sc/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\SC-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "SC"
+        },
+        {
+          "id": "site-1770221415146",
+          "name": "Bravo RS",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_rs/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rs/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\RS-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "RS"
+        },
+        {
+          "id": "site-1770221521828",
+          "name": "Bravo PR",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_pr/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_pr/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\PR-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "PR"
+        },
+        {
+          "id": "site-1770222076217",
+          "name": "Bravo SP",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_sp/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_sp/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\SP-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "SP"
+        },
+        {
+          "id": "site-1770222750416",
+          "name": "Bravo MG",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_mg/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_mg/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\MG-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "MG"
+        },
+        {
+          "id": "site-1770224894643",
+          "name": "Bravo MT",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_mt/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_mt/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\MT-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "MT"
+        },
+        {
+          "id": "site-1770224952253",
+          "name": "Bravo GO",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_go/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_go/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\GO-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "GO"
+        },
+        {
+          "id": "site-1770224972557",
+          "name": "Bravo PE",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_pe/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_pe/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\PE-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "PE"
+        },
+        {
+          "id": "site-1770224991829",
+          "name": "Bravo RN",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_rn/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rn/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\RN-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "RN"
+        },
+        {
+          "id": "site-1770225010934",
+          "name": "Bravo RO",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_ro/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ro/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\RO-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "RO"
+        },
+        {
+          "id": "site-1770225074823",
+          "name": "Bravo ES",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_es/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_es/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\ES-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "ES"
+        },
+        {
+          "id": "site-1770225403080",
+          "name": "Bravo RJ",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_rj/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rj/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\RJ-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "RJ"
+        },
+        {
+          "id": "site-1770225421491",
+          "name": "Bravo BA",
+          "url": "https://alpha.bravoerp.com.br/redeuniao_ba/erp/login/index",
+          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ba/erp/login/index",
+          "usernameField": "input[name='email']",
+          "passwordField": "input[name='senha']",
+          "loginButton": "#btEntrar",
+          "steps": [
+            {
+              "type": "hover",
+              "selector": "#menu__monitores",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#menu__monitores__pedidos",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "#abaTabs a:has-text(\"Itens\")",
+              "continueOnError": false
+            },
+            {
+              "type": "fillDateRange",
+              "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
+              "value": "[TRIM_ATUAL]",
+              "continueOnError": false
+            },
+            {
+              "type": "select",
+              "selector": "[id=\"arrFilter[excluido_estornado]\"]",
+              "value": "nao",
+              "continueOnError": false
+            },
+            {
+              "type": "click",
+              "selector": "input.bgOrange",
+              "continueOnError": false
+            },
+            {
+              "type": "download",
+              "selector": "a:has-text(\"Exportar Excel\")",
+              "continueOnError": false
+            }
+          ],
+          "downloadPath": "C:\\Relatorios\\Pedidos\\BA-Pedidos",
+          "reportType": "PEDIDO",
+          "primaryKeys": [
+            "Doc Item",
+            "Doc",
+            "id.2",
+            "Ref"
+          ],
+          "uf": "BA"
+        }
+      ],
+      "login": "contato@redeuniaonacional.com.br",
+      "password": "@775596@#",
+      "type": "pedidos",
+      "destination": "C:\\Relatorios\\Pedidos",
+      "createdAt": "2026-02-02T12:34:27.670Z",
+      "lastUsedAt": "2026-02-12T18:59:16.039Z",
+      "schedule": {
+        "enabled": true,
+        "mode": "fixed",
+        "intervalHours": 3,
+        "fixedTimes": [
+          "07:30",
+          "13:00",
+          "19:00"
+        ],
+        "compensationPolicy": "skip",
+        "maxCompensationDelay": 24
+      }
+    }
+  ],
+  "notifications": {
+    "enabled": true,
+    "smtp": {
+      "host": "smtp.gmail.com",
+      "port": 465,
+      "secure": true,
+      "user": "ss:763130a683972cdf20aae467084cd329d22e9dfdb7911f15d36a97e0c13deff70661a0ec00837a3d2119f9606c0b70fa0066adadc1b50d7b11614e4f76179e8092bad692fb93acd0c2e17693eb8c4b31817b9442485743a9735e03969ab6c7de0aa850792f1b8475c99bd5792da37f6ae52a925255b6411f373a67c3c97c50f605ae7a2968cbf5b0d38b1bfd24f3a2607b5efff22221d164265002b24bf51f522ad37a96ddb31768ac1e6b7f87a02e2b9c1b872f06a5123cd268b5e4c5828d91c42d3c34a344e420092feed247c9785997a21bac370f1c98c7f8cbc8fbc48b9ba52f101e3d09c814a4a87ab92572549dca730d5f8c5fa3601f7da0fbb4ccc645c12a254580a64b2572619eef810df39522a8eda0fa0b31f9d26b65a5ec882489f64bb43cd78935f455e82ac63d78523a673c1077197e3b24cfd715c77eb47deab42329002ae0a524da28fc050acab2708381992c4fab79112cc502e60460f799dfcd",
+      "pass": "ss:763130e1c27d0b48b761f6a598f8602ced624a1f9faac284616e5fcdeb0080b165b22b9e1637ae8c5d67e847771707ff57e85459cdeb46eeb8c7a15eb601c59c7eece1b51a82fba2117edb9271f255e74fd4aa3ec927d4bfdf459d73dd11014632fcc8845f64c9cc2e22a96c68935258937eb8f1307f7e7c4887010c9339a4e6a13508223b37a3921c9f483c29e07086adf740c39e29bc2ceca7678f962f64699b0650338358c1265e1ea07b685302e8e43f29a82660977da0f2741838f938d792e119a809180237243f03e82e22489a2ab3f3dec1be833bdc8c22b45c53abd0395a7c8d0a7fc888450c46ce7de094dfaaeeffc1f34f51cdba1ff1185b07c7e255b736a73fb32dd74a6e8463476ec2f82a1c025db3cf7c70d5f5949a9205ea4ee3d1ede5273c8c0d7c3796d0c210",
+      "authType": "login"
+    },
+    "recipient": "robinpahbass@gmail.com",
+    "retryAttempts": 3,
+    "showLogo": true,
+    "compactLayout": false
+  }
+}

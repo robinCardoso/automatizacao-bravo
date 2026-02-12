@@ -1,0 +1,8 @@
+{
+  "VENDA": {
+    "primaryKey": ["ID", "PRODCOD", "NNF"]
+  },
+  "PEDIDO": {
+    "primaryKey": ["Doc", "Item", "ID"]
+  }
+}

@@ -1,0 +1,29 @@
+# Automatizador Bravo
+
+## Como gerar o instalador (Build)
+
+Para gerar uma nova versão do instalador (`.exe`), siga os passos abaixo no terminal (PowerShell):
+
+### 🚀 Comando Único para Build (Recomendado)
+
+Para fechar o app, limpar arquivos antigos e gerar um novo instalador em um único comando, execute no PowerShell:
+
+```powershell
+Stop-Process -Name "Automatizador*" -Force -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force release -ErrorAction SilentlyContinue; npm run dist
+```
+
+> [!TIP]
+> Você também pode usar o novo script que criei: `npm run dist:full`
+
+O instalador será gerado na pasta `release/`.
+
+### Opções Adicionais
+
+- **Apenas diretório (sem empacotar)**: `npm run dist:dir`
+- **Portátil (sem instalação)**: `npm run dist:portable`
+
+### Solução de Problemas
+
+Se ocorrer erro de "File Locked" ou "EPERM" durante o build:
+1. Verifique se o app está aberto no Gerenciador de Tarefas e encerre-o.
+2. Se o bloqueio persistir, você pode alterar temporariamente o diretório de saída no `package.json` (ex: de `release` para `release_v2`).

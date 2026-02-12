@@ -1,0 +1,133 @@
+{
+  "name": "automatizador-bravo",
+  "version": "1.0.1",
+  "description": "Automatizador Bravo - Sistema de automação web corporativa com Safe Snapshot Policy",
+  "main": "dist/electron/main.js",
+  "productName": "Automatizador Bravo",
+  "scripts": {
+    "build": "tsc && xcopy app\\renderer dist\\renderer /E /I /Y",
+    "start": "npm run build && electron .",
+    "dev": "npm run build && electron .",
+    "watch": "tsc --watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dist": "npm run build && electron-builder --win --x64",
+    "dist:full": "powershell -Command \"Stop-Process -Name 'Automatizador*' -Force -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force release -ErrorAction SilentlyContinue; npm run dist\"",
+    "dist:dir": "npm run build && electron-builder --win --x64 --dir",
+    "pack": "npm run build && electron-builder --win --x64 --dir",
+    "dist:portable": "npm run build && electron-builder --win zip --x64"
+  },
+  "keywords": [
+    "automação",
+    "bravo",
+    "erp",
+    "windows",
+    "electron",
+    "playwright"
+  ],
+  "author": {
+    "name": "Rede União Nacional",
+    "email": "contato@redeuniaonacional.com.br"
+  },
+  "license": "PROPRIETARY",
+  "type": "commonjs",
+  "build": {
+    "appId": "com.redeuniao.automatizador-bravo",
+    "productName": "Automatizador Bravo",
+    "copyright": "Copyright © 2026 Rede União Nacional",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Automatizador Bravo",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true,
+      "license": "build/license.txt"
+    },
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "build/icon.ico",
+        "to": "build/icon.ico"
+      },
+      {
+        "from": "app/storage",
+        "to": "storage",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "data",
+        "to": "data",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "compression": "store",
+    "asar": true
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^25.0.10",
+    "@types/nodemailer": "^7.0.9",
+    "electron": "^40.0.0",
+    "electron-builder": "^26.7.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.6.2",
+    "keytar": "^7.9.0",
+    "nodemailer": "^8.0.0",
+    "playwright": "^1.58.0",
+    "winston": "^3.19.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "xlsx": "^0.18.5",
+    "zod": "^4.3.6"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "zip",
+        "arch": [
+          "x64"
+        ]
+      },
+      {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "icon": "build/icon.ico",
+    "requestedExecutionLevel": "asInvoker",
+    "sign": false
+  }
+}
