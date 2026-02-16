@@ -185,8 +185,7 @@ export const Presets = {
             dashboardMapping: {
                 value: document.getElementById('pMapValue').value.trim(),
                 date: document.getElementById('pMapDate').value.trim(),
-                group: document.getElementById('pMapGroup').value.trim(),
-                category: document.getElementById('pMapCategory').value.trim()
+                group: document.getElementById('pMapGroup').value.trim()
             },
             schedule,
             sites: [] // Novos presets começam sem sites. Em edição, precisamos preservar.
@@ -375,7 +374,6 @@ export const Presets = {
         document.getElementById('pMapValue').value = '';
         document.getElementById('pMapDate').value = '';
         document.getElementById('pMapGroup').value = '';
-        document.getElementById('pMapCategory').value = '';
 
         // Reset agendamento
         document.getElementById('pSchedEnabled').checked = false;
@@ -416,12 +414,10 @@ export const Presets = {
                     const mapValue = document.getElementById('pMapValue');
                     const mapDate = document.getElementById('pMapDate');
                     const mapGroup = document.getElementById('pMapGroup');
-                    const mapCategory = document.getElementById('pMapCategory');
 
                     if (!mapValue.value) mapValue.value = config.dashboardMapping.value || '';
                     if (!mapDate.value) mapDate.value = config.dashboardMapping.date || '';
                     if (!mapGroup.value) mapGroup.value = config.dashboardMapping.group || '';
-                    if (!mapCategory.value) mapCategory.value = config.dashboardMapping.category || '';
                 }
             }
         } catch (error) {

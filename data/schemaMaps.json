@@ -9,8 +9,7 @@
     "dashboardMapping": {
       "value": "Total Liq",
       "date": "DataE",
-      "group": "ORIGEM_SITE",
-      "category": "Marca"
+      "group": "ORIGEM_SITE"
     }
   },
   "PEDIDO": {
@@ -23,8 +22,7 @@
     "dashboardMapping": {
       "value": "Total Liq R$",
       "date": "Data Proc",
-      "group": "ORIGEM_UF",
-      "category": "Cliente"
+      "group": "ORIGEM_UF"
     }
   }
 }
