@@ -181,6 +181,13 @@ export const Presets = {
             login,
             pass,
             destination,
+            primaryKeys: document.getElementById('pPrimaryKeys').value.split(',').map(s => s.trim()).filter(s => s),
+            dashboardMapping: {
+                value: document.getElementById('pMapValue').value.trim(),
+                date: document.getElementById('pMapDate').value.trim(),
+                group: document.getElementById('pMapGroup').value.trim(),
+                category: document.getElementById('pMapCategory').value.trim()
+            },
             schedule,
             sites: [] // Novos presets começam sem sites. Em edição, precisamos preservar.
         };
@@ -271,6 +278,18 @@ export const Presets = {
             document.getElementById('pPass').value = preset.pass;
             document.getElementById('pDestination').value = preset.destination || '';
 
+            // Novos campos: Primary Keys e Mapping
+            document.getElementById('pPrimaryKeys').value = preset.primaryKeys ? preset.primaryKeys.join(', ') : '';
+            if (preset.dashboardMapping && (preset.dashboardMapping.value || preset.dashboardMapping.date)) {
+                document.getElementById('pMapValue').value = preset.dashboardMapping.value || '';
+                document.getElementById('pMapDate').value = preset.dashboardMapping.date || '';
+                document.getElementById('pMapGroup').value = preset.dashboardMapping.group || '';
+                document.getElementById('pMapCategory').value = preset.dashboardMapping.category || '';
+            } else {
+                // Se não tem mapeamento próprio, tenta sugerir do global
+                this.suggestDefaultMapping(preset.type || 'vendas');
+            }
+
             if (preset.schedule) {
                 document.getElementById('pSchedEnabled').checked = preset.schedule.enabled;
                 document.getElementById('pSchedMode').value = preset.schedule.mode || 'interval';
@@ -325,6 +344,15 @@ export const Presets = {
         if (form) form.style.display = 'block';
         if (footer) footer.style.display = 'none';
 
+        // Listener para o tipo de preset (Vendas/Pedidos) sugerir mapeamentos automáticos
+        const typeSelect = document.getElementById('pType');
+        if (typeSelect && !typeSelect.dataset.listenerAdded) {
+            typeSelect.addEventListener('change', (e) => {
+                this.suggestDefaultMapping(e.target.value);
+            });
+            typeSelect.dataset.listenerAdded = 'true';
+        }
+
         // Limpa campos se não for edição (mas se chamou fillPresetForm antes, já ta preenchido)
         // Se chamado direto pelo botão "Criar Nova", limpamos.
         // Como distinguir? Vamos assumir que quem chama limpa ou preenche.
@@ -342,6 +370,13 @@ export const Presets = {
         document.getElementById('pPass').value = '';
         document.getElementById('pDestination').value = '';
 
+        // Reset novos campos
+        document.getElementById('pPrimaryKeys').value = '';
+        document.getElementById('pMapValue').value = '';
+        document.getElementById('pMapDate').value = '';
+        document.getElementById('pMapGroup').value = '';
+        document.getElementById('pMapCategory').value = '';
+
         // Reset agendamento
         document.getElementById('pSchedEnabled').checked = false;
         document.getElementById('pSchedMode').value = 'interval';
@@ -353,7 +388,45 @@ export const Presets = {
         this.toggleScheduleOptions();
         this.toggleScheduleMode();
 
+        // Sugere mapeamento padrão para o tipo inicial (geralmente vendas)
+        this.suggestDefaultMapping('vendas');
+
         this.showPresetForm();
+    },
+
+    /**
+     * Sugere mapeamentos do dashboard e chaves primárias baseados no schemaMaps.json
+     */
+    async suggestDefaultMapping(type) {
+        try {
+            const schemas = await window.electronAPI.getSchemaMaps();
+            let upperType = String(type).toUpperCase();
+            if (upperType === 'VENDAS') upperType = 'VENDA';
+            if (upperType === 'PEDIDOS') upperType = 'PEDIDO';
+            const config = schemas[upperType];
+
+            if (config) {
+                const pkField = document.getElementById('pPrimaryKeys');
+                // Só preenche se estiver vazio para não sobrescrever edição manual do usuário
+                if (!pkField.value && config.primaryKey) {
+                    pkField.value = config.primaryKey.join(', ');
+                }
+
+                if (config.dashboardMapping) {
+                    const mapValue = document.getElementById('pMapValue');
+                    const mapDate = document.getElementById('pMapDate');
+                    const mapGroup = document.getElementById('pMapGroup');
+                    const mapCategory = document.getElementById('pMapCategory');
+
+                    if (!mapValue.value) mapValue.value = config.dashboardMapping.value || '';
+                    if (!mapDate.value) mapDate.value = config.dashboardMapping.date || '';
+                    if (!mapGroup.value) mapGroup.value = config.dashboardMapping.group || '';
+                    if (!mapCategory.value) mapCategory.value = config.dashboardMapping.category || '';
+                }
+            }
+        } catch (error) {
+            console.error('[Presets] Erro ao sugerir mapeamento padrão:', error);
+        }
     },
 
     hidePresetForm() {

@@ -7,6 +7,7 @@ import { automationEngine } from '../automation/engine/automation-engine';
 import { sessionManager } from '../automation/sessions/session-manager';
 import { schedulerService } from '../automation/engine/scheduler-service';
 import { notificationService } from '../core/notifications/NotificationService';
+import { dashboardService } from '../core/consolidation/DashboardService';
 import logger from '../config/logger';
 
 // Mantém uma referência global da janela e da bandeja para evitar que sejam fechadas pelo garbage collector
@@ -296,6 +297,14 @@ function registerIpcHandlers(): void {
     } catch (error: any) {
       return { success: false, error: error.message };
     }
+  });
+
+  ipcMain.handle('get-dashboard-data', async (event, type, dest, options) => {
+    return await dashboardService.getDashboardStats(type, dest, options);
+  });
+
+  ipcMain.handle('get-schema-maps', async () => {
+    return configManager.getSchemaMaps();
   });
 }
 

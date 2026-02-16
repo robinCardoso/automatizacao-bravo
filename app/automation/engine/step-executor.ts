@@ -22,6 +22,8 @@ export interface Step {
   continueOnError?: boolean;
 }
 
+import { Preset } from '../../config/config-manager';
+
 export class StepExecutor {
   private page: Page;
   private selectorResolver: SelectorResolver;
@@ -31,10 +33,11 @@ export class StepExecutor {
   private siteConfig: SiteConfig;
   private currentPeriod: string = 'GERAL'; // SSP: Período detectado durante a execução
   private customBasePath?: string;
+  private currentPreset?: Preset;
 
   private lastDiffResult: (DiffResult & { currentFile: string, uf: string }) | null = null;
 
-  constructor(page: Page, siteConfig: SiteConfig, defaultTimeout: number = 30000, defaultRetries: number = 3, actionDelay: number = 1000, customBasePath?: string) {
+  constructor(page: Page, siteConfig: SiteConfig, defaultTimeout: number = 30000, defaultRetries: number = 3, actionDelay: number = 1000, customBasePath?: string, currentPreset?: Preset) {
     this.page = page;
     this.siteConfig = siteConfig;
     this.defaultTimeout = defaultTimeout;
@@ -42,6 +45,7 @@ export class StepExecutor {
     this.actionDelay = actionDelay;
     this.customBasePath = configManager.resolvePath(customBasePath);
     this.selectorResolver = new SelectorResolver(page);
+    this.currentPreset = currentPreset;
 
     // NOVO: Garante que a pasta base exista logo no início
     if (this.customBasePath) {
@@ -535,7 +539,7 @@ export class StepExecutor {
           identity,
           tempPath,
           sspBaseDir,
-          this.siteConfig.primaryKeys // Passa as chaves customizadas se houver
+          this.siteConfig.primaryKeys || this.currentPreset?.primaryKeys // Passa as chaves customizadas ou do preset
         );
 
         // Armazena o resultado para o AutomationEngine coletar

@@ -36,6 +36,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   testSmtpConnection: (smtpConfig: any) => ipcRenderer.invoke('test-smtp-connection', smtpConfig),
   sendTestEmail: (options: any) => ipcRenderer.invoke('send-test-email', options),
 
+  // Métodos de Dashboard
+  getDashboardData: (type: string, dest: string, options: any) => ipcRenderer.invoke('get-dashboard-data', type, dest, options),
+  getSchemaMaps: () => ipcRenderer.invoke('get-schema-maps'),
+  saveSchemaMaps: (schemas: any) => ipcRenderer.invoke('save-schema-maps', schemas),
+
   // Eventos
   onAutomationProgress: (callback: (data: any) => void) =>
     ipcRenderer.on('automation-progress', (_event, data) => callback(data)),

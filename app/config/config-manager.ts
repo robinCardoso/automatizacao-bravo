@@ -108,6 +108,16 @@ const PresetSchema = z.object({
   password: z.string().min(1, 'Senha é obrigatória'),
   type: z.enum(['vendas', 'pedidos', 'fiscal', 'outros']).default('outros'),
   destination: z.string().optional(),
+
+  // NOVO: Configurações de Auditoria e Dashboard no nível do Preset
+  primaryKeys: z.array(z.string()).optional(),
+  dashboardMapping: z.object({
+    value: z.string().optional(),
+    date: z.string().optional(),
+    group: z.string().optional(),
+    category: z.string().optional()
+  }).optional(),
+
   createdAt: z.string().optional(),
   lastUsedAt: z.string().optional(),
   schedule: z.object({
@@ -166,15 +176,32 @@ export type SiteConfig = z.infer<typeof SiteConfigSchema>;
 export type AppConfig = z.infer<typeof AppConfigSchema>;
 
 import { AppPaths } from '../core/utils/AppPaths';
+import { app } from 'electron';
+
+export interface SchemaMap {
+  primaryKey: string[];
+  dashboardMapping: {
+    value?: string;
+    date?: string;
+    group?: string;
+    category?: string;
+  };
+}
+
+export interface SchemaMaps {
+  [key: string]: SchemaMap;
+}
 
 export class ConfigManager {
   private static instance: ConfigManager;
   private config: AppConfig;
   private configPath: string;
+  private schemaMaps: SchemaMaps = {};
 
   private constructor() {
     this.configPath = AppPaths.getConfigPath();
     this.config = this.loadConfig();
+    this.loadSchemaMaps();
   }
 
   /**
@@ -517,6 +544,45 @@ export class ConfigManager {
       logger.error('Erro ao importar configurações:', error);
       throw new Error(`Falha ao importar configurações: ${error}`);
     }
+  }
+
+  // ===== MÉTODOS DE SCHEMA MAPS (Audit & Dashboard) =====
+
+  private loadSchemaMaps() {
+    try {
+      const basePath = (app && app.isPackaged) ? process.resourcesPath : process.cwd();
+      const schemaPath = path.join(basePath, 'data', 'schemaMaps.json');
+
+      if (fs.existsSync(schemaPath)) {
+        this.schemaMaps = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
+        logger.info(`[Config] Schemas carregados: ${Object.keys(this.schemaMaps).join(', ')}`);
+      }
+    } catch (error: any) {
+      logger.error(`[Config] Erro ao carregar schemaMaps.json: ${error.message}`);
+    }
+  }
+
+  public getSchemaMaps(): SchemaMaps {
+    return { ...this.schemaMaps };
+  }
+
+  /**
+   * Normaliza o tipo de relatório para o padrão do sistema (Singular, Uppercase)
+   */
+  public normalizeReportType(rawType: string): string {
+    if (!rawType) return 'GERAL';
+    let type = rawType.toUpperCase().trim();
+    if (type === 'VENDAS') type = 'VENDA';
+    if (type === 'PEDIDOS') type = 'PEDIDO';
+    return type;
+  }
+
+  /**
+   * Retorna o schema padrão para um tipo, ou nulo se não existir
+   */
+  public getSchemaByType(rawType: string): SchemaMap | null {
+    const type = this.normalizeReportType(rawType);
+    return this.schemaMaps[type] || null;
   }
 }
 

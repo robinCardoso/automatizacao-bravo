@@ -1,8 +1,30 @@
 {
   "VENDA": {
-    "primaryKey": ["ID", "PRODCOD", "NNF"]
+    "primaryKey": [
+      "ID",
+      "PRODCOD",
+      "NNF",
+      "Referencia"
+    ],
+    "dashboardMapping": {
+      "value": "Total Liq",
+      "date": "DataE",
+      "group": "ORIGEM_SITE",
+      "category": "Marca"
+    }
   },
   "PEDIDO": {
-    "primaryKey": ["Doc", "Item", "ID"]
+    "primaryKey": [
+      "Doc Item",
+      "Doc",
+      "Data Proc",
+      "Ref"
+    ],
+    "dashboardMapping": {
+      "value": "Total Liq R$",
+      "date": "Data Proc",
+      "group": "ORIGEM_UF",
+      "category": "Cliente"
+    }
   }
 }

@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Automatizador Bravo - Sistema de Automação Corporativa</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -25,6 +26,16 @@
         <div class="main-layout">
             <!-- SIDEBAR FIXA -->
             <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>📂 NAVEGAÇÃO</h3>
+                    <div class="sidebar-nav">
+                        <button id="btnNavAuth" class="nav-btn active" onclick="Dashboard.switchView('automation')">🏠
+                            Automação</button>
+                        <button id="btnNavDash" class="nav-btn" onclick="Dashboard.switchView('dashboard')">📊 Painel de
+                            Resultados</button>
+                    </div>
+                </div>
+
                 <div class="sidebar-section">
                     <h3>📊 STATUS DO SISTEMA</h3>
                     <div class="status-grid">
@@ -77,85 +88,198 @@
             </aside>
 
             <!-- CONTEÚDO PRINCIPAL (MODULAR) -->
-            <main class="main-content premium-layout">
+            <main class="main-content">
+                <!-- VIEW 1: AUTOMAÇÃO (COM SUB-TABS) -->
+                <div id="view-automation" class="app-view active-view">
+                    <!-- ÁREA DE CONTROLES COMPARTILHADA -->
+                    <div id="automation-controls-area" class="automation-controls-wrapper">
+                        <section class="premium-card controls-card">
+                            <div class="card-body-row">
+                                <div class="preset-selector-group">
+                                    <label class="premium-label">Fluxo de Operação (Preset)</label>
+                                    <div class="input-with-button">
+                                        <select id="mainPresetSelector" class="premium-select">
+                                            <option value="">Selecione um Preset...</option>
+                                        </select>
+                                        <button class="btn-refresh" onclick="loadPresetsToMain()"
+                                            title="Recarregar">🔄</button>
+                                    </div>
+                                </div>
 
-                <!-- ÁREA 1: CONTROLES INTELIGENTES -->
-                <section class="premium-card controls-card">
-                    <div class="card-body-row">
-                        <div class="preset-selector-group">
-                            <label class="premium-label">Fluxo de Operação (Preset)</label>
-                            <div class="input-with-button">
-                                <select id="mainPresetSelector" class="premium-select">
-                                    <option value="">Selecione um Preset...</option>
+                                <div class="main-actions-group">
+                                    <button id="startBtn" class="btn-action btn-start" onclick="startAutomation()">▶
+                                        INICIAR</button>
+                                    <button id="stopBtn" class="btn-action btn-stop" onclick="stopAutomation()"
+                                        disabled>⏹
+                                        PARAR</button>
+                                    <div class="action-divider"></div>
+                                    <button class="btn-circle" onclick="openConfig()" title="Configurações">⚙</button>
+                                    <button class="btn-circle" onclick="manageSessions()" title="Sessões">🔐</button>
+                                    <button class="btn-circle" onclick="testConnection()" title="Testar">🔧</button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- SUB-NAVEGAÇÃO INTERNA (TABS) -->
+                    <div class="internal-tabs">
+                        <button id="tabBtnAudit" class="tab-btn active" onclick="Dashboard.switchTab('audit')">📋
+                            Auditoria de Integridade</button>
+                        <button id="tabBtnConsole" class="tab-btn" onclick="Dashboard.switchTab('console')">🖥️ Console
+                            de Operações</button>
+                    </div>
+
+                    <!-- CONTEÚDO DAS TABS -->
+                    <div class="tabs-content">
+                        <!-- TAB: AUDITORIA -->
+                        <div id="tab-audit" class="internal-tab active">
+
+                            <!-- ÁREA 2: INTELIGÊNCIA DE AUDITORIA (EMPRESA A EMPRESA) -->
+                            <section class="premium-card audit-card">
+                                <div class="premium-card-header">
+                                    <div class="header-title">
+                                        <span class="icon">📊</span>
+                                        <span>AUDITORIA DE INTEGRIDADE (14+ EMPRESAS)</span>
+                                    </div>
+                                    <div id="auditStatus" class="status-badge badge-waiting">Aguardando Início</div>
+                                </div>
+                                <div class="audit-viewport">
+                                    <table class="premium-table">
+                                        <thead>
+                                            <tr>
+                                                <th width="60">UF</th>
+                                                <th>EMPRESA / FILIAL</th>
+                                                <th width="120" style="text-align: center;">LINHAS</th>
+                                                <th width="150" style="text-align: center;">MUDANÇAS</th>
+                                                <th width="100" style="text-align: center;">STATUS</th>
+                                                <th width="120" style="text-align: right;">AÇÃO</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="auditTableBody">
+                                            <!-- Preenchido dinamicamente -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        </div>
+
+                        <!-- TAB: CONSOLE -->
+                        <div id="tab-console" class="internal-tab" style="display: none;">
+                            <section class="premium-card console-card" style="flex: 1;">
+                                <div class="premium-card-header console-header">
+                                    <div class="header-title">
+                                        <span class="icon">🖥️</span>
+                                        <span>CONSOLE DE OPERAÇÕES EM TEMPO REAL</span>
+                                    </div>
+                                    <div class="header-actions">
+                                        <button class="btn-text-only"
+                                            onclick="logArea.textContent = '> Console pronto...'">Limpar</button>
+                                        <button class="btn-text-only" onclick="toggleSummary()">Exibir Workflow</button>
+                                    </div>
+                                </div>
+                                <div class="console-viewport" style="flex: 1;">
+                                    <div class="log-content premium-font" id="logArea"></div>
+
+                                    <!-- PAINEL DE WORKFLOW -->
+                                    <div id="workflowSummary" class="workflow-side-panel" style="display: none;">
+                                        <div class="overlay-header">Progresso do Workflow</div>
+                                        <div id="summarySteps"></div>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div> <!-- tabs-content -->
+                </div> <!-- view-automation -->
+
+                <!-- VIEW 2: DASHBOARD (NOVO) -->
+                <div id="view-dashboard" class="app-view">
+                    <section class="premium-card">
+                        <div class="premium-card-header">
+                            <div class="header-title">
+                                <span class="icon">📊</span>
+                                <span>PAINEL DE RESULTADOS CONSOLIDADOS</span>
+                            </div>
+                            <div class="header-actions">
+                                <select id="dashMonthFilter" class="premium-select-small"
+                                    onchange="Dashboard.loadDashboard()">
+                                    <option value="">Todos os Meses</option>
                                 </select>
-                                <button class="btn-refresh" onclick="loadPresetsToMain()" title="Recarregar">🔄</button>
+                                <select id="dashBrandFilter" class="premium-select-small"
+                                    onchange="Dashboard.loadDashboard()">
+                                    <option value="">Todas as Marcas</option>
+                                </select>
+                                <select id="dashCustomerFilter" class="premium-select-small"
+                                    onchange="Dashboard.loadDashboard()">
+                                    <option value="">Todos os Clientes</option>
+                                </select>
+                                <select id="dashGroupFilter" class="premium-select-small"
+                                    onchange="Dashboard.loadDashboard()">
+                                    <option value="">Todos os Grupos</option>
+                                </select>
+                                <div class="report-toggle-group">
+                                    <button class="btn-toggle active" id="btnTypeVENDA"
+                                        onclick="Dashboard.setReportType('VENDA')">VENDAS</button>
+                                    <button class="btn-toggle" id="btnTypePEDIDO"
+                                        onclick="Dashboard.setReportType('PEDIDO')">PEDIDOS</button>
+                                </div>
+                                <button id="btnUnknownRefs" class="premium-btn danger-outline"
+                                    style="display: none; padding: 6px 10px; margin-right: 8px; font-size: 11px;"
+                                    onclick="Dashboard.openUnknownRefsModal()">
+                                    <i class="fas fa-exclamation-triangle"></i> <span id="btnUnknownRefsCount">0</span>
+                                </button>
+                                <input type="hidden" id="dashReportType" value="VENDA">
+                                <button class="btn-refresh" onclick="Dashboard.loadDashboard()">🔄</button>
                             </div>
                         </div>
+                        <div class="card-body">
+                            <div class="dashboard-summary" id="dashSummary">
+                                <div class="stat-box">
+                                    <span class="stat-label">Valor Total</span>
+                                    <span class="stat-value" id="dashTotalValue">R$ 0,00</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-label">Registros</span>
+                                    <span class="stat-value" id="dashTotalRecords">0</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-label">Cresc. Valor</span>
+                                    <span class="stat-value" id="dashValueGrowthValue">0%</span>
+                                    <span class="growth-icon" id="dashValueGrowthIcon">-</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-label">Cresc. Registros</span>
+                                    <span class="stat-value" id="dashRecordGrowthValue">0%</span>
+                                    <span class="growth-icon" id="dashRecordGrowthIcon">-</span>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-label">Última Atualização</span>
+                                    <span class="stat-value" id="dashLastUpdate">-</span>
+                                </div>
+                            </div>
 
-                        <div class="main-actions-group">
-                            <button id="startBtn" class="btn-action btn-start" onclick="startAutomation()">▶
-                                INICIAR</button>
-                            <button id="stopBtn" class="btn-action btn-stop" onclick="stopAutomation()" disabled>⏹
-                                PARAR</button>
-                            <div class="action-divider"></div>
-                            <button class="btn-circle" onclick="openConfig()" title="Configurações">⚙</button>
-                            <button class="btn-circle" onclick="manageSessions()" title="Sessões">🔐</button>
-                            <button class="btn-circle" onclick="testConnection()" title="Testar">🔧</button>
+                            <div class="dashboard-grid">
+                                <div class="chart-card">
+                                    <h4>📅 Evolução de Volume (Tempo)</h4>
+                                    <div class="chart-content">
+                                        <canvas id="chartDate"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-card">
+                                    <h4>📍 Volume por Grupo/UF</h4>
+                                    <div class="chart-content">
+                                        <canvas id="chartGroup"></canvas>
+                                    </div>
+                                </div>
+                                <div class="chart-card wide">
+                                    <h4>🏆 Top 10 Categorias / Produtos</h4>
+                                    <div class="chart-content">
+                                        <canvas id="chartCategory"></canvas>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </section>
-
-                <!-- ÁREA 2: INTELIGÊNCIA DE AUDITORIA (EMPRESA A EMPRESA) -->
-                <section class="premium-card audit-card">
-                    <div class="premium-card-header">
-                        <div class="header-title">
-                            <span class="icon">📊</span>
-                            <span>AUDITORIA DE INTEGRIDADE (14+ EMPRESAS)</span>
-                        </div>
-                        <div id="auditStatus" class="status-badge badge-waiting">Aguardando Início</div>
-                    </div>
-                    <div class="audit-viewport">
-                        <table class="premium-table">
-                            <thead>
-                                <tr>
-                                    <th width="60">UF</th>
-                                    <th>EMPRESA / FILIAL</th>
-                                    <th width="120" style="text-align: center;">LINHAS</th>
-                                    <th width="150" style="text-align: center;">MUDANÇAS</th>
-                                    <th width="100" style="text-align: center;">STATUS</th>
-                                    <th width="120" style="text-align: right;">AÇÃO</th>
-                                </tr>
-                            </thead>
-                            <tbody id="auditTableBody">
-                                <!-- Preenchido dinamicamente -->
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- ÁREA 3: CONSOLE TÉCNICO (LOGS) -->
-                <section class="premium-card console-card">
-                    <div class="premium-card-header console-header">
-                        <div class="header-title">
-                            <span class="icon">🖥️</span>
-                            <span>CONSOLE DE OPERAÇÕES EM TEMPO REAL</span>
-                        </div>
-                        <div class="header-actions">
-                            <button class="btn-text-only"
-                                onclick="logArea.textContent = '> Console pronto...'">Limpar</button>
-                            <button class="btn-text-only" onclick="toggleSummary()">Exibir Workflow</button>
-                        </div>
-                    </div>
-                    <div class="console-viewport">
-                        <div class="log-content premium-font" id="logArea"></div>
-
-                        <!-- PAINEL DE WORKFLOW (Substituindo o antigo Overlay) -->
-                        <div id="workflowSummary" class="workflow-side-panel" style="display: none;">
-                            <div class="overlay-header">Progresso do Workflow</div>
-                            <div id="summarySteps"></div>
-                        </div>
-                    </div>
-                </section>
+                    </section>
+                </div>
             </main>
         </div>
 
@@ -277,6 +401,43 @@
                                 <div id="presetSiteLinks"
                                     style="max-height: 150px; overflow-y: auto; background: #fcfdfe; border: 1px solid #dce4ec; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px;">
                                     <small style="color: #95a5a6;">Nenhum site disponível.</small>
+                                </div>
+                            </div>
+
+                            <!-- NOVA SEÇÃO: AUDITORIA E DASHBOARD DO PRESET -->
+                            <div class="config-section-title">Auditoria e Dashboard (Centralizado)</div>
+                            <div class="minimal-card"
+                                style="margin-bottom: 20px; background: #f8fbff; border: 1px solid #d0e1f3;">
+                                <div class="form-group">
+                                    <label class="form-label">Chaves Primárias (Deduplicação / Audit)</label>
+                                    <input type="text" id="pPrimaryKeys" class="form-control"
+                                        placeholder="ID, NUMERO, NOTA (Separadas por vírgula)">
+                                    <small style="font-size: 10px; color: #7f8c8d;">Define quais colunas juntas
+                                        identificam um registro único para evitar duplicados.</small>
+                                </div>
+
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+                                    <div class="form-group">
+                                        <label class="form-label">Coluna de Valor</label>
+                                        <input type="text" id="pMapValue" class="form-control"
+                                            placeholder="Ex: VALOR_TOTAL">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Coluna de Data</label>
+                                        <input type="text" id="pMapDate" class="form-control"
+                                            placeholder="Ex: DT_EMISSAO">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Coluna de Grupo (UF/Site)</label>
+                                        <input type="text" id="pMapGroup" class="form-control"
+                                            placeholder="Ex: ORIGEM_UF">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Coluna de Categoria</label>
+                                        <input type="text" id="pMapCategory" class="form-control"
+                                            placeholder="Ex: PRODUTO">
+                                    </div>
                                 </div>
                             </div>
 
@@ -733,6 +894,43 @@
                 <div class="modal-footer">
                     <button class="btn btn-secondary" onclick="closeModal('sessionModal')">FECHAR</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL DE RELATÓRIO DE ERROS / REFS DESCONHECIDAS -->
+    <div id="unknownRefsModal" class="premium-modal" style="display: none;">
+        <div class="premium-modal-content" style="max-width: 600px;">
+            <div class="premium-modal-header">
+                <h2 style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> Produtos Não Identificados</h2>
+                <span class="close-modal"
+                    onclick="document.getElementById('unknownRefsModal').style.display='none'">&times;</span>
+            </div>
+            <div class="premium-modal-body">
+                <p style="margin-bottom: 15px; color: #7f8c8d;">
+                    Os seguintes códigos de produto foram encontrados no arquivo de PEDIDOS mas não possuem cadastro de
+                    Marca/Grupo no sistema (baseado no histórico de Vendas).
+                </p>
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead style="background: #f8f9fa; position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Referência
+                                </th>
+                                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #ddd;">Ocorrências
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="unknownRefsTableBody">
+                            <!-- Items serão inseridos aqui -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="premium-modal-footer">
+                <button class="premium-btn secondary"
+                    onclick="document.getElementById('unknownRefsModal').style.display='none'">Fechar</button>
             </div>
         </div>
     </div>

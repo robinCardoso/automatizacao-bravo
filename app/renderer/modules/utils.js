@@ -46,5 +46,9 @@ export const Utils = {
     // Escapa aspas para HTML
     escapeHtml(str) {
         return String(str).replace(/"/g, '&quot;');
+    },
+
+    formatCurrency(value) {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
     }
 };

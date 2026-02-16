@@ -1,6 +1,7 @@
 // ui.js - Gerenciamento da Interface
 import { Utils } from './utils.js';
 import { State } from './state.js';
+import { Dashboard } from './dashboard.js';
 
 export const UI = {
     toggleButtons(running) {
@@ -240,6 +241,11 @@ export const UI = {
         if (systemStatus) {
             systemStatus.textContent = 'AGUARDANDO';
             systemStatus.style.color = '#7f8c8d';
+        }
+
+        // Gatilho para atualizar o Dashboard real se estiver visível
+        if (Dashboard && document.getElementById('view-dashboard').classList.contains('active-view')) {
+            Dashboard.loadDashboard();
         }
     },
     async loadConfigToUI() {

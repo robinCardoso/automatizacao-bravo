@@ -7,6 +7,7 @@ import { Sites } from './modules/sites.js';
 import { Sessions } from './modules/sessions.js';
 import { Automation } from './modules/automation.js';
 import { ConfigIO } from './modules/config-io.js';
+import { Dashboard } from './modules/dashboard.js';
 
 // Resolve depência circular (Sites precisa ser chamado por Presets)
 setSitesModule(Sites);
@@ -89,6 +90,10 @@ window.toggleSummary = UI.toggleSummary;
 window.openModal = UI.openModal;
 window.closeModal = UI.closeModal;
 window.switchConfigTab = UI.switchConfigTab;
+
+// Dashboard
+window.switchView = Dashboard.switchView.bind(Dashboard);
+window.Dashboard = Dashboard;
 
 // Presets
 // Presets

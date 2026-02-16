@@ -12,7 +12,18 @@ Sistema de automação web corporativa com Safe Snapshot Policy (SSP) para extra
 - **Agendamento Flexível**: Execução automática em horários programados
 - **Interface Moderna**: UI Electron com feedback em tempo real
 
-## 📋 Pré-requisitos
+## � Dashboard BI 2.0 (New)
+
+O sistema recebeu um upgrade completo de Business Intelligence:
+
+- **Filtros Multidimensionais**: Cruzamento de dados por Mês + Marca + Grupo + Cliente simultaneamente.
+- **Métricas de Crescimento (MoM)**: Acompanhamento visual de crescimento/queda (%) em Valor e Volume comparado ao mês anterior.
+- **Enriquecimento de Dados (Smart Catalog)**:
+  - O sistema "aprende" automaticamente os detalhes dos produtos (Marca, Grupo) a partir dos relatórios de VENDA.
+  - Ao processar PEDIDOS, ele preenche automaticamente as informações faltantes.
+  - **Relatório de Erros**: Alerta visual para produtos desconhecidos/novos que precisam de cadastro.
+
+## �📋 Pré-requisitos
 
 - Node.js 16+ 
 - Windows 10/11

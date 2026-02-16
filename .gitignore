@@ -118,6 +118,8 @@ Thumbs.db
 app/storage/screenshots/
 app/storage/sessions/
 app/storage/logs/
+app/storage/profiles/
+app/storage/catalog.json
 snapshots/
 downloads/
 *.xlsx

@@ -6,6 +6,7 @@ import { configManager } from '../../config/config-manager';
 import { automationLogger } from '../../config/logger';
 import { buildMasterSnapshotName } from '../../policy/snapshot/FileNamingPolicy';
 import { AppPaths } from '../utils/AppPaths';
+import { ExcelUtils } from '../utils/ExcelUtils';
 
 export interface SiteResult {
     success: boolean;
@@ -20,54 +21,7 @@ export interface SiteResult {
 }
 
 export class Consolidator {
-    private schemas: any = {};
-
-    constructor() {
-        this.loadSchemas();
-    }
-
-    private loadSchemas() {
-        try {
-            // Em produção (packaged), o 'data' está em resources/data via extraResources
-            const basePath = app.isPackaged ? process.resourcesPath : process.cwd();
-            const schemaPath = path.join(basePath, 'data', 'schemaMaps.json');
-
-            if (fs.existsSync(schemaPath)) {
-                const rawSchemas = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
-                this.validateSchemas(rawSchemas);
-                this.schemas = rawSchemas;
-                automationLogger.info(`[Consolidator] Schemas carregados: ${Object.keys(this.schemas).join(', ')}`);
-            } else {
-                automationLogger.warn(`[Consolidator] Arquivo de schema não encontrado: ${schemaPath}`);
-            }
-        } catch (error: any) {
-            automationLogger.error(`[Consolidator] Erro ao carregar schemas: ${error.message}`);
-        }
-    }
-
-    /**
-     * Valida a estrutura do arquivo schemaMaps.json
-     */
-    private validateSchemas(schemas: any): void {
-        if (typeof schemas !== 'object' || schemas === null) {
-            throw new Error('schemaMaps.json deve ser um objeto');
-        }
-
-        for (const [tipo, config] of Object.entries(schemas)) {
-            if (typeof config !== 'object' || config === null) {
-                throw new Error(`Schema inválido para tipo "${tipo}": deve ser um objeto`);
-            }
-
-            const schemaConfig = config as any;
-            if (!Array.isArray(schemaConfig.primaryKey)) {
-                throw new Error(`Schema inválido para tipo "${tipo}": primaryKey deve ser um array`);
-            }
-
-            if (schemaConfig.primaryKey.length === 0) {
-                automationLogger.warn(`[Consolidator] Tipo "${tipo}" não possui chaves primárias definidas`);
-            }
-        }
-    }
+    constructor() { }
     /**
      * Consolida múltiplos arquivos Excel em arquivos mestres (Snapshot e Deletados)
      * Agora agrupa por tipo de relatório através de todos os períodos e UFs.
@@ -81,7 +35,7 @@ export class Consolidator {
         // Busca na raiz do resultado ou dentro de sspResult (caso de sucesso)
         const sampleResult = tipoOverride ? null : results.find(r => r.identity?.tipo || r.sspResult?.identity?.tipo);
         const rawTipo = tipoOverride || sampleResult?.identity?.tipo || sampleResult?.sspResult?.identity?.tipo || 'GERAL';
-        const tipo = rawTipo.toUpperCase(); // Normaliza para maiúsculo (PEDIDO, VENDA)
+        const tipo = configManager.normalizeReportType(rawTipo);
 
         const statusLabel = tipoOverride ? `(Tipo Forçado: ${tipoOverride})` : `(Tipo Inferido: ${tipo})`;
         automationLogger.info(`[Consolidator] Iniciando VERDADEIRA consolidação master para: ${tipo} ${statusLabel} em ${resolvedDest}`);
@@ -144,9 +98,16 @@ export class Consolidator {
         // Ordenamos por data de modificação descendente para que, ao deduplicar, mantenhamos o mais recente
         allSnapshots.sort((a, b) => b.mtime - a.mtime);
 
-        automationLogger.info(`[Consolidator] Lendo ${allSnapshots.length} snapshots para inclusão no ${logLabel}`)
+        automationLogger.info(`[Consolidator] Lendo ${allSnapshots.length} snapshots para inclusão no ${logLabel}`);
 
-            ;
+        // NOVO: Resolve chaves primárias a partir dos resultados da execução atual (se disponíveis)
+        // Isso garante que se o usuário mudou a PK no Preset, o Consolidado Master respeite IMEDIATAMENTE.
+        let customPKs: string[] | undefined;
+        const resultWithPKs = currentResults.find(r => r.sspResult?.primaryKeys && r.sspResult.primaryKeys.length > 0);
+        if (resultWithPKs) {
+            customPKs = resultWithPKs.sspResult.primaryKeys;
+            automationLogger.debug(`[Consolidator] Usando chaves primárias da execução atual: ${customPKs?.join(', ')}`);
+        }
 
         try {
             // Leitura paralela de snapshots para melhor performance
@@ -159,7 +120,7 @@ export class Consolidator {
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     if (!sheet) return null;
 
-                    const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+                    const rows: any[] = ExcelUtils.safeSheetToJson(sheet, { defval: "" });
                     if (rows.length === 0) return null;
 
                     const meta = this.getSnapshotMeta(snap.path);
@@ -193,7 +154,7 @@ export class Consolidator {
 
             // Detecção e remoção de duplicatas factuais entre diferentes períodos
             const initialCount = masterData.length;
-            masterData = this.removeDuplicates(masterData, tipo);
+            masterData = this.removeDuplicates(masterData, tipo, customPKs);
             const dedupCount = initialCount - masterData.length;
 
             if (dedupCount > 0) {
@@ -345,13 +306,13 @@ export class Consolidator {
      * Remove registros duplicados mantendo apenas o registro vindo do snapshot mais recente (mtime)
      * Utiliza chaves primárias definidas no schemaMaps.json se disponíveis, caso contrário usa assinatura completa.
      */
-    private removeDuplicates(data: any[], tipo: string): any[] {
+    private removeDuplicates(data: any[], tipo: string, overridePKs?: string[]): any[] {
         const seen = new Set<string>();
         const metadataCols = ['PERIODO_ORIGINAL', 'ORIGEM_UF', 'ORIGEM_SITE', 'DATA_PROCESSAMENTO_ORIGINAL', 'ORIGEM_SNAPSHOT'];
 
-        // Obtém chaves primárias do schema para o tipo de relatório
-        const schema = this.schemas[tipo];
-        const primaryKeys: string[] = schema?.primaryKey || [];
+        // Obtém chaves primárias: Prioridade 1 (Override da Execução) > Prioridade 2 (schemaMaps.json)
+        const schema = configManager.getSchemaByType(tipo);
+        const primaryKeys: string[] = overridePKs && overridePKs.length > 0 ? overridePKs : (schema?.primaryKey || []);
 
         if (primaryKeys.length > 0) {
             automationLogger.debug(`[Consolidator] Deduplicando ${tipo} usando chaves: ${primaryKeys.join(', ')}`);

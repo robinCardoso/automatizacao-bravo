@@ -10,6 +10,7 @@ import { SafeSnapshotPolicy } from '../../policy/snapshot/SafeSnapshotPolicy';
 import { SnapshotMeta } from '../../policy/snapshot/SnapshotMeta';
 import { validateSnapshotIdentity } from '../../policy/snapshot/SnapshotGate';
 import { automationLogger } from '../../config/logger';
+import { ExcelUtils } from '../utils/ExcelUtils';
 
 
 export type DiffResult = {
@@ -76,7 +77,7 @@ export class DiffEngine {
     // 3. Lê o novo download (NEXT)
     const nextWorkbook = XLSX.readFile(newDownloadPath);
     const nextSheet = nextWorkbook.Sheets[nextWorkbook.SheetNames[0]];
-    const nextRows: any[] = XLSX.utils.sheet_to_json(nextSheet);
+    const nextRows: any[] = ExcelUtils.safeSheetToJson(nextSheet, { defval: "" });
 
     if (nextRows.length === 0) {
       automationLogger.warn(`[DiffEngine] O arquivo baixado parece estar vazio.`);
@@ -87,7 +88,7 @@ export class DiffEngine {
     if (fs.existsSync(files.current)) {
       try {
         const prevWorkbook = XLSX.readFile(files.current);
-        prevRows = XLSX.utils.sheet_to_json(prevWorkbook.Sheets[prevWorkbook.SheetNames[0]]);
+        prevRows = ExcelUtils.safeSheetToJson(prevWorkbook.Sheets[prevWorkbook.SheetNames[0]], { defval: "" });
       } catch (e) {
         automationLogger.warn(`[DiffEngine] Falha ao ler arquivo anterior, tratando como nova execução.`);
       }

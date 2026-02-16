@@ -13,7 +13,7 @@ export interface LoginResult {
 export class LoginHandler {
   private static instance: LoginHandler;
 
-  private constructor() {}
+  private constructor() { }
 
   public static getInstance(): LoginHandler {
     if (!LoginHandler.instance) {
@@ -27,7 +27,7 @@ export class LoginHandler {
    */
   async performLogin(site: SiteConfig, context: BrowserContext, headless: boolean = true): Promise<LoginResult> {
     sessionLogger.info(`Iniciando processo de login para: ${site.name}`);
-    
+
     try {
       // Valida contexto antes de tentar criar página
       if (!context || context.pages().length === 0) {
@@ -35,7 +35,7 @@ export class LoginHandler {
       }
 
       const page = context.pages()[0] || await context.newPage();
-      
+
       // Navega para a página de login (Usa 'domcontentloaded' para evitar travamento)
       await page.goto(site.loginUrl, { waitUntil: 'domcontentloaded' });
       sessionLogger.debug(`Navegou para: ${site.loginUrl}`);
@@ -123,15 +123,18 @@ export class LoginHandler {
       // Preenche campos de usuário e senha
       await page.fill(site.usernameField, credentials.username, { timeout: 10000 });
       await page.waitForTimeout(delay);
-      
+
       await page.fill(site.passwordField, credentials.password, { timeout: 10000 });
       await page.waitForTimeout(delay);
 
       // Clica no botão de login
       await page.click(site.loginButton, { timeout: 10000 });
 
-      // Aguarda redirecionamento ou carregamento
-      await page.waitForLoadState('networkidle', { timeout: 30000 });
+      // Aguarda redirecionamento ou carregamento básico
+      // 'load' é mais resiliente que 'networkidle' para sites com analytics/background constante
+      await page.waitForLoadState('load', { timeout: 20000 }).catch(() => {
+        sessionLogger.warn(`Timeout aguardando 'load' completo em ${site.name}, tentando prosseguir...`);
+      });
 
       // Verifica se o login foi bem-sucedido
       if (await this.isLoginSuccessful(page, site)) {
@@ -202,8 +205,8 @@ export class LoginHandler {
     // Verifica texto relacionado a captcha
     const pageContent = await page.content();
     const captchaKeywords = ['captcha', 'não sou um robô', 'prova de humano'];
-    
-    return captchaKeywords.some(keyword => 
+
+    return captchaKeywords.some(keyword =>
       pageContent.toLowerCase().includes(keyword)
     );
   }
@@ -214,19 +217,19 @@ export class LoginHandler {
   private async performManualLogin(page: Page, site: SiteConfig): Promise<LoginResult> {
     try {
       sessionLogger.info('Aguardando intervenção manual do usuário para login/captcha...');
-      
+
       // Mostra instruções no console/log
       automationLogger.info(`⚠️ AÇÃO REQUERIDA: Realize o login manualmente na janela do navegador para o site: ${site.name}`);
 
       // Aguarda o usuário logar (detectamos o sucesso via pooling de elementos indicadores)
       const maxWaitTime = 5 * 60 * 1000; // 5 minutos de espera máxima
       const startTime = Date.now();
-      
+
       while (Date.now() - startTime < maxWaitTime) {
         if (await this.isLoginSuccessful(page, site)) {
           sessionLogger.info('Login manual detectado com sucesso!');
-          return { 
-            success: true, 
+          return {
+            success: true,
             requiresManual: true,
             sessionId: site.id
           };
@@ -290,16 +293,16 @@ export class LoginHandler {
       // Verifica redirecionamentos para PÁGINA de login (não apenas parâmetro)
       const currentUrl = page.url();
       const urlPath = new URL(currentUrl).pathname.toLowerCase();
-      
+
       // Detecta se está em uma PÁGINA de login (não apenas parâmetro na query string)
       const isLoginPage = (
-        urlPath.includes('/login') || 
+        urlPath.includes('/login') ||
         urlPath.includes('/signin') ||
         urlPath.includes('/authenticate') ||
         urlPath.endsWith('/login.php') ||
         urlPath.endsWith('/signin.php')
       );
-      
+
       if (isLoginPage) {
         sessionLogger.debug(`Sessão expirada detectada - redirecionado para: ${currentUrl}`);
         return true;
@@ -332,7 +335,7 @@ export class LoginHandler {
    */
   async reauthenticate(site: SiteConfig, context: BrowserContext, headless: boolean = true): Promise<LoginResult> {
     sessionLogger.info(`Reautenticando para site: ${site.name}`);
-    
+
     try {
       // Valida se o contexto ainda está aberto
       const isContextClosed = context.pages().length === 0;
@@ -347,7 +350,7 @@ export class LoginHandler {
 
       // Remove sessão expirada
       await sessionManager.deleteSession(site.id);
-      
+
       // Realiza novo login
       return await this.performLogin(site, context, headless);
     } catch (error: any) {

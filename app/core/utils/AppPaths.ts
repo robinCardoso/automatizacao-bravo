@@ -38,6 +38,10 @@ export class AppPaths {
         return path.join(this.getBaseDataPath(), 'snapshots');
     }
 
+    public static getCatalogPath(): string {
+        return path.join(this.getBaseDataPath(), 'storage/catalog.json');
+    }
+
     /**
      * Garante que todas as pastas essenciais existam
      */
