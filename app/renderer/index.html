@@ -7,6 +7,7 @@
     <title>Automatizador Bravo - Sistema de Automação Corporativa</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -194,86 +195,180 @@
                 <!-- VIEW 2: DASHBOARD (NOVO) -->
                 <div id="view-dashboard" class="app-view">
                     <section class="premium-card">
-                        <div class="premium-card-header">
-                            <div class="header-title">
-                                <span class="icon">📊</span>
-                                <span>PAINEL DE RESULTADOS CONSOLIDADOS</span>
-                            </div>
-                            <div class="header-actions">
-                                <select id="dashMonthFilter" class="premium-select-small"
-                                    onchange="Dashboard.loadDashboard()">
-                                    <option value="">Todos os Meses</option>
-                                </select>
-                                <select id="dashBrandFilter" class="premium-select-small"
-                                    onchange="Dashboard.loadDashboard()">
-                                    <option value="">Todas as Marcas</option>
-                                </select>
-                                <select id="dashCustomerFilter" class="premium-select-small"
-                                    onchange="Dashboard.loadDashboard()">
-                                    <option value="">Todos os Clientes</option>
-                                </select>
-                                <select id="dashGroupFilter" class="premium-select-small"
-                                    onchange="Dashboard.loadDashboard()">
-                                    <option value="">Todos os Grupos</option>
-                                </select>
-                                <div class="report-toggle-group">
-                                    <button class="btn-toggle active" id="btnTypeVENDA"
-                                        onclick="Dashboard.setReportType('VENDA')">VENDAS</button>
-                                    <button class="btn-toggle" id="btnTypePEDIDO"
-                                        onclick="Dashboard.setReportType('PEDIDO')">PEDIDOS</button>
+                        <div class="premium-card-header dashboard-header-compact"
+                            style="flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 6px;">
+                            <!-- Top Row: Title and Main Actions -->
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <div class="header-title">
+                                    <span class="icon">📊</span>
+                                    <span style="white-space: nowrap; font-size: 14px; font-weight: 700;">PAINEL DE
+                                        RESULTADOS CONSOLIDADOS</span>
                                 </div>
-                                <button id="btnUnknownRefs" class="premium-btn danger-outline"
-                                    style="display: none; padding: 6px 10px; margin-right: 8px; font-size: 11px;"
-                                    onclick="Dashboard.openUnknownRefsModal()">
-                                    <i class="fas fa-exclamation-triangle"></i> <span id="btnUnknownRefsCount">0</span>
-                                </button>
-                                <input type="hidden" id="dashReportType" value="VENDA">
-                                <button class="btn-refresh" onclick="Dashboard.loadDashboard()">🔄</button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="dashboard-summary" id="dashSummary">
-                                <div class="stat-box">
-                                    <span class="stat-label">Valor Total</span>
-                                    <span class="stat-value" id="dashTotalValue">R$ 0,00</span>
-                                </div>
-                                <div class="stat-box">
-                                    <span class="stat-label">Registros</span>
-                                    <span class="stat-value" id="dashTotalRecords">0</span>
-                                </div>
-                                <div class="stat-box">
-                                    <span class="stat-label">Cresc. Valor</span>
-                                    <span class="stat-value" id="dashValueGrowthValue">0%</span>
-                                    <span class="growth-icon" id="dashValueGrowthIcon">-</span>
-                                </div>
-                                <div class="stat-box">
-                                    <span class="stat-label">Cresc. Registros</span>
-                                    <span class="stat-value" id="dashRecordGrowthValue">0%</span>
-                                    <span class="growth-icon" id="dashRecordGrowthIcon">-</span>
-                                </div>
-                                <div class="stat-box">
-                                    <span class="stat-label">Última Atualização</span>
-                                    <span class="stat-value" id="dashLastUpdate">-</span>
+                                <div class="header-actions" style="margin-left: auto;">
+                                    <div class="report-toggle-group">
+                                        <button class="btn-toggle active" id="btnTypeVENDA"
+                                            onclick="Dashboard.setReportType('VENDA')">VENDAS</button>
+                                        <button class="btn-toggle" id="btnTypePEDIDO"
+                                            onclick="Dashboard.setReportType('PEDIDO')">PEDIDOS</button>
+                                    </div>
+                                    <button id="btnUnknownRefs" class="premium-btn danger-outline"
+                                        style="display: none; padding: 6px 10px; margin-right: 8px; font-size: 11px;"
+                                        onclick="Dashboard.openUnknownRefsModal()">
+                                        <i class="fas fa-exclamation-triangle"></i> <span
+                                            id="btnUnknownRefsCount">0</span>
+                                    </button>
+                                    <input type="hidden" id="dashReportType" value="VENDA">
+                                    <button class="btn-refresh" onclick="Dashboard.loadDashboard()">🔄</button>
                                 </div>
                             </div>
 
-                            <div class="dashboard-grid">
-                                <div class="chart-card">
-                                    <h4>📅 Evolução de Volume (Tempo)</h4>
-                                    <div class="chart-content">
-                                        <canvas id="chartDate"></canvas>
+                            <!-- Bottom Row: Filters -->
+                            <div class="dashboard-filters"
+                                style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 10px;">
+                                <select id="dashMonthFilter" class="premium-select-small"
+                                    onchange="Dashboard.loadDashboard()" style="flex: 1; min-width: 120px;">
+                                    <option value="">Todos os Meses</option>
+                                </select>
+                                <div class="dash-combobox" data-filter="brand" style="flex: 1; min-width: 140px;">
+                                    <input type="hidden" id="dashBrandFilter" value="">
+                                    <input type="text" id="dashBrandFilterDisplay" class="dash-combobox-input" readonly
+                                        placeholder="Todas as Marcas" autocomplete="off">
+                                    <div class="dash-combobox-dropdown">
+                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..." autocomplete="off">
+                                        <div class="dash-combobox-list"></div>
                                     </div>
                                 </div>
-                                <div class="chart-card">
-                                    <h4>📍 Volume por Grupo/UF</h4>
-                                    <div class="chart-content">
-                                        <canvas id="chartGroup"></canvas>
+                                <div class="dash-combobox" data-filter="customer" style="flex: 1; min-width: 140px;">
+                                    <input type="hidden" id="dashCustomerFilter" value="">
+                                    <input type="text" id="dashCustomerFilterDisplay" class="dash-combobox-input" readonly
+                                        placeholder="Todos os Clientes" autocomplete="off">
+                                    <div class="dash-combobox-dropdown">
+                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..." autocomplete="off">
+                                        <div class="dash-combobox-list"></div>
                                     </div>
                                 </div>
-                                <div class="chart-card wide">
-                                    <h4>🏆 Top 10 Categorias / Produtos</h4>
-                                    <div class="chart-content">
-                                        <canvas id="chartCategory"></canvas>
+                                <div class="dash-combobox" data-filter="group" style="flex: 1; min-width: 140px;">
+                                    <input type="hidden" id="dashGroupFilter" value="">
+                                    <input type="text" id="dashGroupFilterDisplay" class="dash-combobox-input" readonly
+                                        placeholder="Todos os Grupos" autocomplete="off">
+                                    <div class="dash-combobox-dropdown">
+                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..." autocomplete="off">
+                                        <div class="dash-combobox-list"></div>
+                                    </div>
+                                </div>
+                                <div class="dash-combobox" data-filter="subGroup" style="flex: 1; min-width: 140px;">
+                                    <input type="hidden" id="dashSubGroupFilter" value="">
+                                    <input type="text" id="dashSubGroupFilterDisplay" class="dash-combobox-input" readonly
+                                        placeholder="Todos os Sub-Grupos" autocomplete="off">
+                                    <div class="dash-combobox-dropdown">
+                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..." autocomplete="off">
+                                        <div class="dash-combobox-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="dashboard-filter-pills" class="dashboard-filter-pills"></div>
+                        </div>
+                        <div class="card-body dashboard-cards-body">
+                            <div class="dashboard-summary" id="dashSummary"
+                                style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; margin-top: 0;">
+                                <div class="stat-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                    padding: 10px 12px; border-radius: 8px; text-align: center;">
+                                    <span class="stat-label" style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
+                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Valor
+                                        Total</span>
+                                    <span class="stat-value" id="dashTotalValue" style="display: block; font-size: 16px; 
+                                        font-weight: 700; color: #fff;">R$ 0,00</span>
+                                </div>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
+                                    padding: 10px 12px; border-radius: 8px; text-align: center;">
+                                    <span class="stat-label"
+                                        style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
+                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Registros</span>
+                                    <span class="stat-value" id="dashTotalRecords" style="display: block; font-size: 16px; 
+                                        font-weight: 700; color: #fff;">0</span>
+                                </div>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+                                    padding: 10px 12px; border-radius: 8px; text-align: center; position: relative;">
+                                    <span class="stat-label" style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
+                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Cresc.
+                                        Valor</span>
+                                    <span class="stat-value" id="dashValueGrowthValue" style="display: block; font-size: 16px; 
+                                        font-weight: 700; color: #fff;">0%</span>
+                                    <span class="growth-icon" id="dashValueGrowthIcon" style="position: absolute; top: 8px; 
+                                        right: 8px; font-size: 12px;">-</span>
+                                </div>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); 
+                                    padding: 10px 12px; border-radius: 8px; text-align: center; position: relative;">
+                                    <span class="stat-label" style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
+                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Cresc.
+                                        Registros</span>
+                                    <span class="stat-value" id="dashRecordGrowthValue" style="display: block; font-size: 16px; 
+                                        font-weight: 700; color: #fff;">0%</span>
+                                    <span class="growth-icon" id="dashRecordGrowthIcon" style="position: absolute; top: 8px; 
+                                        right: 8px; font-size: 12px;">-</span>
+                                </div>
+                                <div class="stat-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); 
+                                    padding: 10px 12px; border-radius: 8px; text-align: center;">
+                                    <span class="stat-label" style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
+                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Última
+                                        Atualização</span>
+                                    <span class="stat-value" id="dashLastUpdate" style="display: block; font-size: 11px; 
+                                        font-weight: 600; color: #fff;">-</span>
+                                </div>
+                            </div>
+
+                            <div class="dashboard-chart-submenus">
+                                <button type="button" class="chart-submenu-btn active" data-chart-submenu="1" onclick="Dashboard.switchChartSubmenu(1)">Tempo e Grupo</button>
+                                <button type="button" class="chart-submenu-btn" data-chart-submenu="2" onclick="Dashboard.switchChartSubmenu(2)">Marca e UF</button>
+                                <button type="button" class="chart-submenu-btn" data-chart-submenu="3" onclick="Dashboard.switchChartSubmenu(3)">Por Associado</button>
+                            </div>
+
+                            <div class="dashboard-chart-panel active" data-chart-submenu="1">
+                                <div class="dashboard-grid">
+                                    <div class="chart-card">
+                                        <h4>Evolução de Volume (Tempo)</h4>
+                                        <div class="chart-content">
+                                            <canvas id="chartDate"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="chart-card">
+                                        <h4>Volume por Grupo</h4>
+                                        <div class="chart-content">
+                                            <canvas id="chartGroup"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="chart-card wide">
+                                        <h4>Top 10 Categorias / Produtos</h4>
+                                        <div class="chart-content">
+                                            <canvas id="chartCategory"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dashboard-chart-panel" data-chart-submenu="2">
+                                <div class="dashboard-grid">
+                                    <div class="chart-card">
+                                        <h4>Volume por Marca</h4>
+                                        <div class="chart-content">
+                                            <canvas id="chartBrand"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="chart-card">
+                                        <h4>Volume por UF</h4>
+                                        <div class="chart-content">
+                                            <canvas id="chartUF"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="dashboard-chart-panel" data-chart-submenu="3">
+                                <div class="dashboard-grid">
+                                    <div class="chart-card">
+                                        <h4>Volume por Associado</h4>
+                                        <div class="chart-content">
+                                            <canvas id="chartAssociado"></canvas>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -429,9 +524,13 @@
                                             placeholder="Ex: DT_EMISSAO">
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label">Coluna de Grupo (UF/Site)</label>
-                                        <input type="text" id="pMapGroup" class="form-control"
-                                            placeholder="Ex: ORIGEM_UF">
+                                        <label class="form-label">Coluna de Sub-Grupo (Opcional)</label>
+                                        <input type="text" id="pMapSubGroup" class="form-control"
+                                            placeholder="Ex: SUB_GRUPO">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Coluna de Grupo</label>
+                                        <input type="text" id="pMapGroup" class="form-control" placeholder="Ex: GRUPO">
                                     </div>
                                 </div>
                             </div>
@@ -785,11 +884,6 @@
                                         <option value="PEDIDO">PEDIDO (Controle)</option>
                                     </select>
                                 </div>
-                                <div class="form-group" style="margin: 0;">
-                                    <label class="form-label">Chaves Primárias</label>
-                                    <input type="text" id="sPrimaryKeys" class="form-control"
-                                        placeholder="Doc Item, id.1">
-                                </div>
                             </div>
 
                             <div class="config-section-title">Passos Adicionais (Pós-Login)</div>
@@ -896,7 +990,7 @@
 
     <!-- MODAL DE RELATÓRIO DE ERROS / REFS DESCONHECIDAS -->
     <div id="unknownRefsModal" class="premium-modal" style="display: none;">
-        <div class="premium-modal-content" style="max-width: 600px;">
+        <div class="premium-modal-content" style="max-width: 900px;">
             <div class="premium-modal-header">
                 <h2 style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i> Produtos Não Identificados</h2>
                 <span class="close-modal"
@@ -905,16 +999,34 @@
             <div class="premium-modal-body">
                 <p style="margin-bottom: 15px; color: #7f8c8d;">
                     Os seguintes códigos de produto foram encontrados no arquivo de PEDIDOS mas não possuem cadastro de
-                    Marca/Grupo no sistema (baseado no histórico de Vendas).
+                    Marca/Grupo no sistema. Você pode corrigir diretamente aqui ou exportar para Excel.
                 </p>
-                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;">
+
+                <!-- Action Buttons -->
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button class="premium-btn primary" onclick="Dashboard.exportUnknownRefsToExcel()" style="flex: 1;">
+                        📊 Exportar para Excel
+                    </button>
+                    <button class="premium-btn secondary" onclick="Dashboard.importUnknownRefsFromExcel()"
+                        style="flex: 1;">
+                        📥 Importar do Excel
+                    </button>
+                    <input type="file" id="unknownRefsFileInput" accept=".xlsx,.xls" style="display: none;"
+                        onchange="Dashboard.handleExcelImport(event)">
+                </div>
+
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 4px;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                         <thead style="background: #f8f9fa; position: sticky; top: 0;">
                             <tr>
                                 <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Referência
                                 </th>
-                                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #ddd;">Ocorrências
+                                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #ddd;">Qtd</th>
+                                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Marca</th>
+                                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Grupo</th>
+                                <th style="padding: 8px; text-align: left; border-bottom: 2px solid #ddd;">Sub-Grupo
                                 </th>
+                                <th style="padding: 8px; text-align: center; border-bottom: 2px solid #ddd;">Ação</th>
                             </tr>
                         </thead>
                         <tbody id="unknownRefsTableBody">

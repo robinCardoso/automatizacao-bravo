@@ -1,0 +1,15 @@
+{
+  "identity": {
+    "tipo": "VENDA",
+    "period": "FEV2026",
+    "uf": "SP"
+  },
+  "lastUpdated": "2026-02-18T13:58:14.914Z",
+  "schemaVersion": "1.1 (Auto-Convert)",
+  "primaryKeyUsed": [
+    "id",
+    "ref"
+  ],
+  "rowCount": 2,
+  "checksum": "b35e06d32b7cee911a0c0d61292efe68370ef7326753438ce6892a3c993f18c5"
+}

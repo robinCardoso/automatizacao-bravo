@@ -147,6 +147,7 @@ export const Sites = {
         Utils.updateStatus('sitesCount', sites.length);
     },
 
+
     showSiteForm() {
         const form = document.getElementById('siteForm');
         if (form) form.style.display = 'block';
@@ -160,7 +161,7 @@ export const Sites = {
         document.getElementById('sPassField').value = '';
         document.getElementById('sLoginBtn').value = '';
         document.getElementById('sReportType').value = '';
-        document.getElementById('sPrimaryKeys').value = '';
+        // Removed sPrimaryKeys
         document.getElementById('sUF').value = 'SC';
         document.getElementById('sDest').value = '';
         document.getElementById('stepsList').innerHTML = '';
@@ -171,6 +172,7 @@ export const Sites = {
             SelectorUtils.setupAutoConvert(document.getElementById('sLoginBtn'));
         }
     },
+
 
     hideSiteForm() {
         const form = document.getElementById('siteForm');
@@ -275,13 +277,7 @@ export const Sites = {
         });
 
         const reportType = document.getElementById('sReportType').value;
-        const pkInput = document.getElementById('sPrimaryKeys').value;
-        const pkVal = pkInput.split(',').map(k => k.trim()).filter(k => k !== '');
-
-        if (reportType && pkVal.length === 0) {
-            Utils.showNotification('Para relatórios SSP, informe ao menos uma Coluna Identificadora!', 'error');
-            return;
-        }
+        // Removed Primary Keys logic
 
         const siteConfig = {
             id,
@@ -292,7 +288,7 @@ export const Sites = {
             passwordField: document.getElementById('sPassField').value,
             loginButton: document.getElementById('sLoginBtn').value,
             reportType: document.getElementById('sReportType').value || undefined,
-            primaryKeys: pkVal.length > 0 ? pkVal : undefined,
+            // primaryKeys removed as it's now handled by Presets
             uf: document.getElementById('sUF').value || 'SC',
             downloadPath: document.getElementById('sDest').value || undefined,
             steps
@@ -342,7 +338,7 @@ export const Sites = {
             document.getElementById('sPassField').value = site.passwordField;
             document.getElementById('sLoginBtn').value = site.loginButton;
             document.getElementById('sReportType').value = site.reportType || '';
-            document.getElementById('sPrimaryKeys').value = (site.primaryKeys || []).join(', ');
+            // Removed sPrimaryKeys population
             document.getElementById('sUF').value = site.uf || 'SC';
             document.getElementById('sDest').value = site.downloadPath || '';
 

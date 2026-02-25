@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   clearSessions: () => ipcRenderer.invoke('clear-sessions'),
   openBrowserForLogin: (siteId: string) => ipcRenderer.invoke('open-browser-for-login', siteId),
   openFile: (filePath: string) => ipcRenderer.invoke('open-file', filePath),
+  openLogsFolder: () => ipcRenderer.invoke('open-logs-folder'),
 
   // Métodos de Preset (Fase 6)
   getPresets: () => ipcRenderer.invoke('get-presets'),
@@ -40,6 +41,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDashboardData: (type: string, dest: string, options: any) => ipcRenderer.invoke('get-dashboard-data', type, dest, options),
   getSchemaMaps: () => ipcRenderer.invoke('get-schema-maps'),
   saveSchemaMaps: (schemas: any) => ipcRenderer.invoke('save-schema-maps', schemas),
+
+  // Métodos de Catálogo
+  updateCatalogItem: (ref: string, info: any) => ipcRenderer.invoke('update-catalog-item', ref, info),
+  batchUpdateCatalog: (items: any[]) => ipcRenderer.invoke('batch-update-catalog', items),
 
   // Eventos
   onAutomationProgress: (callback: (data: any) => void) =>

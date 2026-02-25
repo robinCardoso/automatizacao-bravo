@@ -20,12 +20,16 @@ export interface DashboardData {
         byDate: { label: string; value: number }[];
         byGroup: { label: string; value: number }[];
         byCategory: { label: string; value: number }[];
+        byBrand: { label: string; value: number }[];
+        byUF: { label: string; value: number }[];
+        byAssociado: { label: string; value: number }[];
     };
     availableMonths: string[];
     availableFilters: {
         brands: string[];
         customers: string[];
         groups: string[];
+        subGroups: string[];
     };
     mappingUsed: any;
     sourceFile: string;
@@ -95,6 +99,11 @@ export class DashboardService {
             if (!mapping) {
                 automationLogger.warn(`[DashboardService] Nenhum mapeamento de dashboard definido para ${tipoReport} (Preset: ${currentPreset?.name || 'N/A'})`);
                 return null;
+            }
+
+            // Fix for legacy presets showing UF instead of Product Group
+            if (mapping.group === 'ORIGEM_SITE' || mapping.group === 'ORIGEM_UF') {
+                mapping.group = 'Grupo';
             }
 
             const workbook = XLSX.readFile(filePath);
@@ -177,13 +186,17 @@ export class DashboardService {
             charts: {
                 byDate: [],
                 byGroup: [],
-                byCategory: []
+                byCategory: [],
+                byBrand: [],
+                byUF: [],
+                byAssociado: []
             },
             availableMonths: [],
             availableFilters: {
                 brands: [],
                 customers: [],
-                groups: []
+                groups: [],
+                subGroups: []
             },
             mappingUsed: mapping,
             sourceFile: filePath,
@@ -193,11 +206,17 @@ export class DashboardService {
         const dateMap = new Map<string, number>();
         const groupMap = new Map<string, number>();
         const categoryMap = new Map<string, number>();
+        const brandMap = new Map<string, number>();
+        const ufMap = new Map<string, number>();
+        const associadoMap = new Map<string, number>();
 
         const monthsSet = new Set<string>();
         const brandsSet = new Set<string>();
         const customersSet = new Set<string>();
         const groupsSet = new Set<string>();
+        const subGroupsSet = new Set<string>();
+        // [NEW] Mapa para armazenar totais por mês (para cálculo de tendência)
+        const monthlyTotals = new Map<string, { value: number, records: number }>();
 
         // Constantes para comparação temporal
         let prevMonth = "";
@@ -251,11 +270,14 @@ export class DashboardService {
             const bVal = findValue(row, 'Marca') || findValue(row, 'MARCA');
             if (bVal) brandsSet.add(String(bVal));
 
-            const cVal = findValue(row, 'Cliente / Nome Fantasia') || findValue(row, 'Nome Fantasia') || findValue(row, 'Cliente');
+            const cVal = findValue(row, 'Cliente') || findValue(row, 'Cliente / Nome Fantasia') || findValue(row, 'Nome Fantasia');
             if (cVal) customersSet.add(String(cVal));
 
             const gVal = findValue(row, mapping.group);
             if (gVal) groupsSet.add(String(gVal));
+
+            const sgVal = findValue(row, 'Sub-Group') || findValue(row, 'SUB-GRUPO') || findValue(row, 'SubGrupo') || (mapping.subGroup ? findValue(row, mapping.subGroup) : undefined);
+            if (sgVal) subGroupsSet.add(String(sgVal));
 
             // 2. Lógica de Filtragem Dinâmica
             // Condição 1: Filtro de Mês
@@ -272,7 +294,7 @@ export class DashboardService {
                 let rowVal = findValue(row, key);
                 // Casos especiais de nomes de colunas que o usuário pode selecionar
                 if (rowVal === undefined && key === 'brand') rowVal = findValue(row, 'Marca') || findValue(row, 'MARCA');
-                if (rowVal === undefined && key === 'customer') rowVal = findValue(row, 'Cliente / Nome Fantasia') || findValue(row, 'Nome Fantasia') || findValue(row, 'Cliente');
+                if (rowVal === undefined && key === 'customer') rowVal = findValue(row, 'Cliente') || findValue(row, 'Cliente / Nome Fantasia') || findValue(row, 'Nome Fantasia');
 
                 if (rowVal === undefined || String(rowVal) !== String(val)) {
                     matchesCustomFilters = false;
@@ -284,17 +306,59 @@ export class DashboardService {
             // 3. Processamento de Valores (Soma para o Período Selecionado)
             let val = 0;
             const rawVal = findValue(row, mapping.value);
-            if (rawVal !== undefined) {
-                const cleanVal = String(rawVal).replace(/[^\d.,-]/g, '').replace(',', '.');
-                val = parseFloat(cleanVal) || 0;
+
+            if (rawVal !== undefined && rawVal !== null) {
+                if (typeof rawVal === 'number') {
+                    val = rawVal;
+                } else {
+                    const strVal = String(rawVal).trim();
+                    // Heurística para formato PT-BR (ex: 1.000,00 ou 1000,00) vs EN-US (1,000.00)
+                    // Se tiver vírgula no final (ex: ,50) ou tiver pontos antes da vírgula (1.234,56)
+                    const hasComma = strVal.includes(',');
+                    const hasDot = strVal.includes('.');
+
+                    let cleanVal = strVal;
+
+                    if (hasComma && hasDot) {
+                        // Ambíguo, mas no Brasil: Ponto = Milhar, Vírgula = Decimal
+                        // Vamos assumir PT-BR se a última ocorrência for vírgula
+                        if (strVal.lastIndexOf(',') > strVal.lastIndexOf('.')) {
+                            // Formato 1.234,56 -> Remove pontos, troca vírgula por ponto
+                            cleanVal = strVal.replace(/\./g, '').replace(',', '.');
+                        } else {
+                            // Formato 1,234.56 -> Remove vírgulas
+                            cleanVal = strVal.replace(/,/g, '');
+                        }
+                    } else if (hasComma) {
+                        // Só vírgula (1000,50) -> Troca por ponto
+                        cleanVal = strVal.replace(',', '.');
+                    }
+                    // Se só tem ponto (1000.50), deixa como está (JS aceita)
+
+                    // Remove caracteres não numéricos exceto ponto e sinal negativo
+                    cleanVal = cleanVal.replace(/[^\d.-]/g, '');
+                    val = parseFloat(cleanVal) || 0;
+                }
             } else {
-                val = 1;
+                val = 0;
             }
 
-            // Acumula para o mês atual selecionado
+            // [NEW] Agregação Mensal para Cálculo de Tendência (Trend)
+            // Se rowMonth existe e passa nos filtros customizados (Marca, etc)
+            // A validação matchesCustomFilters já garantiu que a linha é válida para o escopo atual
+            if (rowMonth) {
+                if (!monthlyTotals.has(rowMonth)) {
+                    monthlyTotals.set(rowMonth, { value: 0, records: 0 });
+                }
+                const m = monthlyTotals.get(rowMonth)!;
+                m.value += val;
+                m.records++;
+            }
+
+            // Acumula para o mês atual selecionado (Display Principal)
             if (!options.month || isCurrentMonth) {
                 stats.summary.totalValue += val;
-                stats.summary.totalRecords++;
+                stats.summary.totalRecords++; // Contagem de registros sempre incrementa 1 por linha
 
                 // Agrupamentos dos Gráficos
                 if (dateObj) {
@@ -310,21 +374,61 @@ export class DashboardService {
                 if (catVal) {
                     categoryMap.set(String(catVal), (categoryMap.get(String(catVal)) || 0) + val);
                 }
-            }
 
-            // Acumula para o mês anterior (para o cálculo do delta %)
-            if (isPrevMonth) {
-                totalValuePrev += val;
-                totalRecordsPrev += 1;
+                if (bVal) {
+                    brandMap.set(String(bVal), (brandMap.get(String(bVal)) || 0) + val);
+                }
+                const ufVal = findValue(row, 'UF') || findValue(row, 'ORIGEM_UF');
+                if (ufVal) {
+                    ufMap.set(String(ufVal), (ufMap.get(String(ufVal)) || 0) + val);
+                }
+                const associadoVal = findValue(row, 'Associado');
+                if (associadoVal) {
+                    associadoMap.set(String(associadoVal), (associadoMap.get(String(associadoVal)) || 0) + val);
+                }
             }
         });
 
-        // 4. Cálculos de Crescimento
-        if (totalValuePrev > 0) {
-            stats.summary.valueGrowth = ((stats.summary.totalValue - totalValuePrev) / totalValuePrev) * 100;
+        // 4. Cálculos de Crescimento (Revisado para suportar "Todos os Meses")
+        let currentMonthVal = 0;
+        let prevMonthVal = 0;
+        let currentMonthRec = 0;
+        let prevMonthRec = 0;
+
+        if (options.month) {
+            // Se um mês específico foi selecionado, usamos a lógica direta
+            // O loop já filtrou e somou stats.summary.totalValue (Current)
+            // Precisamos do PrevMonth (que pode não ter sido somado em stats se o filtro 'isCurrentMonth' excluiu)
+            // Mas espere! O loop tinha 'if (isPrevMonth) totalValuePrev += val'.
+            // Vamos usar o mapa monthlyTotals que é mais seguro e completo
+            if (monthlyTotals.has(options.month)) {
+                currentMonthVal = monthlyTotals.get(options.month)!.value;
+                currentMonthRec = monthlyTotals.get(options.month)!.records;
+            }
+            if (prevMonth && monthlyTotals.has(prevMonth)) {
+                prevMonthVal = monthlyTotals.get(prevMonth)!.value;
+                prevMonthRec = monthlyTotals.get(prevMonth)!.records;
+            }
+        } else {
+            // Se "Todos os Meses", pegamos os 2 últimos meses disponíveis para indicar Tendência Recente
+            const sortedMonths = Array.from(monthlyTotals.keys()).sort(); // YYYY-MM sorteia corretamente
+            if (sortedMonths.length >= 2) {
+                const lastMonth = sortedMonths[sortedMonths.length - 1]; // Atual
+                const penultMonth = sortedMonths[sortedMonths.length - 2]; // Anterior
+
+                currentMonthVal = monthlyTotals.get(lastMonth)!.value;
+                currentMonthRec = monthlyTotals.get(lastMonth)!.records;
+                prevMonthVal = monthlyTotals.get(penultMonth)!.value;
+                prevMonthRec = monthlyTotals.get(penultMonth)!.records;
+            }
         }
-        if (totalRecordsPrev > 0) {
-            stats.summary.recordGrowth = ((stats.summary.totalRecords - totalRecordsPrev) / totalRecordsPrev) * 100;
+
+        // Calcula Delta
+        if (prevMonthVal > 0) {
+            stats.summary.valueGrowth = ((currentMonthVal - prevMonthVal) / prevMonthVal) * 100;
+        }
+        if (prevMonthRec > 0) {
+            stats.summary.recordGrowth = ((currentMonthRec - prevMonthRec) / prevMonthRec) * 100;
         }
 
         // 5. Formatação Final
@@ -332,7 +436,8 @@ export class DashboardService {
         stats.availableFilters = {
             brands: Array.from(brandsSet).sort(),
             customers: Array.from(customersSet).sort(),
-            groups: Array.from(groupsSet).sort()
+            groups: Array.from(groupsSet).sort(),
+            subGroups: Array.from(subGroupsSet).sort()
         };
 
         stats.charts.byDate = Array.from(dateMap.entries())
@@ -347,6 +452,28 @@ export class DashboardService {
             .map(([label, value]) => ({ label, value }))
             .sort((a, b) => b.value - a.value)
             .slice(0, 15);
+
+        stats.charts.byBrand = Array.from(brandMap.entries())
+            .map(([label, value]) => ({ label, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 20);
+
+        stats.charts.byUF = Array.from(ufMap.entries())
+            .map(([label, value]) => ({ label, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 20);
+
+        stats.charts.byAssociado = Array.from(associadoMap.entries())
+            .map(([label, value]) => ({ label, value }))
+            .sort((a, b) => b.value - a.value)
+            .slice(0, 20);
+
+        // Convert unknownRefsMap to array for frontend
+        if (unknownRefsMap.size > 0) {
+            stats.unknownRefs = Array.from(unknownRefsMap.entries())
+                .map(([ref, count]) => ({ ref, count }))
+                .sort((a, b) => b.count - a.count);
+        }
 
         return stats;
     }

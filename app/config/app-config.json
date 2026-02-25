@@ -3,7 +3,7 @@
   "defaultRetries": 3,
   "actionDelay": 1000,
   "headless": true,
-  "schedulerEnabled": false,
+  "schedulerEnabled": true,
   "presets": [
     {
       "id": "a76db722-1b1b-4a53-b5ca-3ac99e5a7bf6",
@@ -52,12 +52,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\SC-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "SC"
         },
         {
@@ -103,12 +97,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\RS-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "RS"
         },
         {
@@ -154,12 +142,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\PR-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "PR"
         },
         {
@@ -205,12 +187,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\SP-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "SP"
         },
         {
@@ -256,12 +232,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\MG-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "MG"
         },
         {
@@ -307,12 +277,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\RJ-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "RJ"
         },
         {
@@ -358,12 +322,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\MT-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "MT"
         },
         {
@@ -409,12 +367,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\GO-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "GO"
         },
         {
@@ -460,12 +412,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\ES-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "ES"
         },
         {
@@ -511,12 +457,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\PE-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "PE"
         },
         {
@@ -562,12 +502,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\RN-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "RN"
         },
         {
@@ -613,12 +547,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\RO-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "RO"
         },
         {
@@ -664,12 +592,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\BA-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "BA"
         },
         {
@@ -715,12 +637,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\MA-Vendas",
           "reportType": "VENDA",
-          "primaryKeys": [
-            "ID",
-            "PRODCOD",
-            "NNF",
-            "Referencia"
-          ],
           "uf": "MA"
         }
       ],
@@ -732,16 +648,17 @@
         "ID",
         "PRODCOD",
         "NNF",
+        "DataE",
         "Referencia"
       ],
       "dashboardMapping": {
         "value": "Total Liq",
         "date": "DataE",
-        "group": "ORIGEM_SITE",
-        "category": "Marca"
+        "group": "Grupo",
+        "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-01-28T15:56:23.142Z",
-      "lastUsedAt": "2026-02-16T17:11:09.397Z",
+      "lastUsedAt": "2026-02-25T12:43:56.751Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -751,6 +668,7 @@
           "12:30",
           "18:30"
         ],
+        "nextRun": "2026-02-25T15:30:00.000Z",
         "compensationPolicy": "skip",
         "maxCompensationDelay": 24
       }
@@ -808,12 +726,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\SC-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "SC"
         },
         {
@@ -865,12 +777,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\RS-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "RS"
         },
         {
@@ -922,12 +828,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\PR-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "PR"
         },
         {
@@ -979,12 +879,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\SP-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "SP"
         },
         {
@@ -1036,12 +930,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\MG-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "MG"
         },
         {
@@ -1093,12 +981,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\MT-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "MT"
         },
         {
@@ -1150,12 +1032,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\GO-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "GO"
         },
         {
@@ -1207,12 +1083,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\PE-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "PE"
         },
         {
@@ -1264,12 +1134,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\RN-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "RN"
         },
         {
@@ -1321,12 +1185,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\RO-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "RO"
         },
         {
@@ -1378,12 +1236,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\ES-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "ES"
         },
         {
@@ -1435,12 +1287,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\RJ-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "RJ"
         },
         {
@@ -1492,12 +1338,6 @@
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\BA-Pedidos",
           "reportType": "PEDIDO",
-          "primaryKeys": [
-            "Doc Item",
-            "Doc",
-            "id.2",
-            "Ref"
-          ],
           "uf": "BA"
         }
       ],
@@ -1514,11 +1354,11 @@
       "dashboardMapping": {
         "value": "Total Liq R$",
         "date": "Data Proc",
-        "group": "ORIGEM_UF",
-        "category": "Cliente"
+        "group": "Grupo",
+        "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-02-02T12:34:27.670Z",
-      "lastUsedAt": "2026-02-16T14:57:34.220Z",
+      "lastUsedAt": "2026-02-20T22:19:38.522Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -1528,6 +1368,7 @@
           "13:00",
           "19:00"
         ],
+        "nextRun": "2026-02-24T22:00:00.000Z",
         "compensationPolicy": "skip",
         "maxCompensationDelay": 24
       }
@@ -1539,8 +1380,8 @@
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,
-      "user": "ss:763130d499ca6306f0b17dd186755e937add0135c8cf7a9835dca264272ddbb4102fa22bab8e1156e0c089ff5c08077c5949851fb5640d1ae85b81fa585e799dc56c0cbf4cbfd2e9c8b929540aa91475892f81c28255b9f3c0bc466f346106e025ff9afc6a2027ef02761d789e82399440fe148f74551d8b8106d3492de977ade5526e5f62f5789184dc50bb64f9ce2a16beb6da574b70c21b75c19836d5010765308cc5a401c3bc259b4f11b230cd412ccfc84944d8be534bd0e6c133fe3acb8edca7dbd8776bb0434e627c04b5d12b97cbab79f410762a56fe6ae4a67f9880edfac969bff6b18ffc6273220f55adcdc7ceeb45a5fce91002ab7a4106705ff53d75c84c48e0351b39ff9a1e2b0e30222f1240427ad78d75452b5ce7f64b4d12572e5744c13c76bd4e0fedefeaafc5dd06ce33f182a5d5a5316070f280213a09c047053c865ef2e99cc177757ebb934abbd51342c320360622f224247c7ce3954aa16e6564200138ed2b13988ecc3587b2fef6162dfce3acc9d0fcd52b0b16e399c85484be8a2abadf59635bf9c564e692e12826072e620fd5e86691c29be0b3ba541acb2abede292532a6caa3201753e2472f26582c0b628515d8fc3f4caeae4ae7b91aa03375dda5439499bc926fe88527597427fbb96857cc58c1e8f7d2497d691ecb9d48ea9cee58315bf16e5bf437a5d8faab533014efe1d414223b329fe39d95faf46c6bd68a2c39c3d2dd530ba6a4c728d95bb8d72e0465c58dee044d8d3e2d351702407a16bfcfd76cbd3c17e1ecc1de8c05f19cc41136a7d2411a9577a9dee4bf3e42cf0b4c3297fe86b7aff6ae9361ddf3c111517ae327cb1f40c9f1054940a712bb90b37e5a58b4085b72907cc126d63aafe1307d003a6c9b893ae3d90a902004fa01d647bd3b5a9bda7babb4569cde26ef9397e3b925c8e5d96634152c7f12b163f3ca3b099ec0a99049f1c1d60be94db7038e52847eb9846378e27842d76eb5c671d0a417f55ca608d8d60c9165fe82347bbebcb88f7b62b7eacd982d891bfb13d22efe38e9010967d2abfc12dd2954f9bd52f05bd6d54326375e502c89e254bab119559ec9f20386246d7a4dc48867e58a90d5b8b7cd95335f4af336c47dbf62a5e70004a1f46fd291203c559b11ce1e820fdcf26598ba7020401e1ba485094e24291bea5474a34c10fbe50854a1c42f92cc7cd15c0b27207b423929b475108aa674a4842d1f7cb77bb2ce105c8cd24e44567221fd756bfed4df3234e0e3ac176770326b9801859272406049437d0ba47b9e0a7e5b0b2004dce4a433a35789702025c8519c14e59117fc36b0ef0669e876b1994584811a3fee5d96f8bd266f001fefce97b34ee6318fbafeba6c32c08a1db2ffdf1c6110e9c7f99306d75d5e9c087b57c592304641fbf92886466d82fd72247d20bbe3de168a4bbf02636d172695958997d384fa5e5511b13f7bcbe24f441fcaa2679f76c2ba390a09f4ad3d44927ada8f09e7ba7abf3463dece3b75f99471c60d42bdd1dd108355da502a0865eadc928a810e24ee4fa6101b63eea2dbd4754888b299adb6046a68f6446f11429b7d8aafc56eecec47b3bbeb6a467b587fe52b3b98d78a4b39f5fad940fe3513e2e3c267c43038e8199992bc417f0ab1c834ba203bb30c76e11c52f2dbbae83af1bce154306c582aeb911efc61f5c6d64e10baabdc1828fade489b5f076b0605c964f1462c0e37cdf61c9f7d299761789b70a846ac7b9d41f1df0710e30a2b609db82c2ea152dcc7d1a6516d794b1f70f93f0c20ca6f0e7535ab7bd3e7121acbed8580a8422c1906c6b2b478737e2ef58e1de919f9a6123dba390d21007dafbe34ecf1bfb51c397826ea935949e915c2ecc48db90db39e2fdeb300f5a795d9c7f3da37465767225e4056358366d5716b8380d6a313bad22a566666ac7d5a27b0b42966235cb4fdbd397777f972dc103168d60afffad603a2647491b6c69b720a44d25377d052ab08e838787dca4c9b0d8521ecaf7d0a216e623aee551c9fdbcd8c1587b2269ff103a0d677e58877a15f817009429a715c7827344481c7695920b31a36aa5c949af416882077db9615fa4cb12723da53b9f9dda4c6fa622eaf148878e1febce91e4fa9e9d2cf32222a0043eac0c3326dc51a03b5cd5ebbdbc5bcde5aa2bc4740d7a60d5516c08b75fa71da1157e6a710b9d13350742eb607b46b9b677e7992af7f9e3868579ae2b470b006d9fbcb62b271892635f9cb9ca13f746d5662614c552d18ab32acbe431c3b5effac7a07c2040f7f262813eca065990d5c39f006dcb88124f52e05df57a3fa510d1abfd95bb2bf3ae3f5364517f437208dab7738012201ff44beb2151c203a3ce7bb4b34b3b9d67f4d6f95d4e3bde5866a67c1521fb035a78e2d5ff7b5ad7e2c69bbde980214c53f829d59ebc8613a8118483cb9ae4347aebff92f1438bcec996549b6c0d847b8231414ed2956963355fe009b5f027eb06649a08412483e8ae938c135cd1a9515bb9f389a1cf587bf56c2b7704ed7b47bc27551c0ea60679c109a110ba1cee6352621d454951a102a9c51f69a2989df99205e6fd913d51d5dd34cecb80ca38eb150ea6aa3b2d7560999a6611c973307057415dd96f8f20ff9e4775b27022a1d5c0e25d93d9781497a64742227a58a4c76cd891fbc780f1562e12de92a9dbd8b94228a41acf126e818cead91ec29dfa116d2ef23db2e7935dc47e178e41c94b52abf15febcccf01c377615cc1d461cb2a22d2c94fb9de6c35c1295148e636a5dd385ba960942c510169cdd9080813d3765fe27aceecca7015388c1cdcefa7e295b146a15bd1f3283690668cb1f1525b264e3562bda641b16b90d310aa09450ad6fd664121dc198676bc5c87a8952ac83cff9ac7622a430a8b1ab9a1a17dc131e59c8ae17e8a19e2bca5c518ae31909ca41da437c0d4ffe9cfc2e6459189a5d9a83575fadade03aaa0f334ec1be0870a6639bdd64c35a2b418be8036c63d9421f187c7a2486da43ccbdeca2cf890fde23dc267d672df9cc4d6b0c061369dddd30735b002af847cdd45456c8e3d76b0eb8ab3b0f9a6de7387b1a09fba17ae3cc98ff096b37b8c5933eaf119165d1df8d30f2b95cfa1619352ddcc6dfcec1d0695ee6128bcfd4aa3744057618534c29b8ad11caa1ec02bdeb78a54b9f877548f89075f8f552384cb2d224bb50d2e4863994fbf382ce02f2c95d7d0c160e6e5c1b77b18c8a121cfd8a7a8f21e526e1a4750325041bbf2ca59b282dce88537be9fbd46144e30667b4c2c394a4209109926f2e4c8c10ca453862319a2fdf71dbced22e8eb4db7a9d878ae1b9aea9fe60fbbcf7ed8b5be3311516c6f6b54c983913ec824a759743f72c98d932a7867e90bf237a4b3269ca3f88f3badd6c6e16d8c25f5097aaf5b98c876ae452f9700e3f1d23367ce29e4c5b5716d1fdb1ec65515cea8a1a1b9c86ab158213de3ccd1cd46b45928e5a2fc5adeceea39c38d15544f6854d0a7b4215a6a8082221ec8d7692ab0ad514719345e76041efec56c295efdad2501c13c04ed30af55473b94966a03a47978b726ef46c68cb35387de2497d85741ab55712c3c786fb9164463725424b6f5a4c84f1ecbfaf55e97ded8c8cd13fbe4351a747891a75357d9bc7a45ae09b784787f989cca4c77cccebce7ac49287102cf21035d1984a8b17c935afd4dcf675596587bca545c6b3182d405b5a265f13608ba98ceae29d55536a38d3fa492c8605b000401d025fe4547db637282854d36d2a8a9c76a7c7d66167ea39545c5334227134a40424701ee9cededaf41683b88c5a54884ddf9aca748200e2755b3fa5deaf48f3150dbc67c7c9a93cdc5dd4ece421d2df5cf90b6233bbea4ea5ccedbffa80033c2f39c0798fb07bd2a5271db05ef0265f22ed7bdcc57e5b861d7e4f77f631f7af6e31775fd10e0eefb7ed69898486bad948444c1dc3c87901dcb3c2bb6235dfd7e99fd841758552c3a31dabafdf997b96eb91d616349ba4d2961cdb31e04b18dc7a1491817922986dced6b0618a6a977f0a74c34d1d90128807c86cf5091a9c5871d28d28264dbc2075e44c060ab44a137ef56d3bb71d96c8f660d2aca7491eabdca612b32bd8b6152b30847f497f32226280e47189702ad71d40baf8c145be79c2783454888cccc3d38fb5557588bda10afe9692fe6705c551d52c0928cd99276c7408e7a194c27a421fe2a8d91f8c615ee54904fa4fea0e32223f2fa7c8f86bd9c2d0191d6cb61c364f98b7cb7e352cfbcdda5381014264d4ead7d5771c9471e324675a78886d49c3cb80752881",
-      "pass": "ss:76313012b99dcdd5e55184d00c65593a1d5fb0ffa2467506fcb4c72aa7d248e9c4befb85a81209f6779de105db528aa926601e6b18c71f003f6edcdc843404092dba21a70d59bf79d9fe7964f3fdfc1d55b6579fca53a73fa1d0c959d2f6b96a026dfa144b94dd5bfd82d6e4fdb9b2efeda2defc59a5260dcdf8a80784adbc2939150e93d4faf4e996ce85bb9accc2e218e5eb94cb9417c7c29cde2047b0d4e1e1dc8a553475e8f6f1792eb025e69595cefdc4f16e41a1ade2ec469ac39541d51db500b54b65f6b2f1c96659114ee159b259fa71e26bc771733093dc55e2886d381c111ca5c5165255deb3958115fc9f8d12cc8739ec6a84875aec05d4a72b00e1164d67101b453a97c7d59e76d81be1d9aba37998abb94cbe09b728065c1f5daff5e46ccb45577b8085269737d70a810915ca1cdd3f89454799bbaa1c042b33641ae0b0ff70d0695ddbbcdd360b749a1a905daaf8b5254098334b2a7c75b0ad58e883a0b66b5653560f34e01e2686245c2ee33b4c0f81b6d0b27a3760faf9fd7f4abab3d05d8465a97ff4060d68517ca3a24b89f5a83e55406587c9f7d314753011d52dba94bf016ad5d8e146f40b54e8bad22c4ddcb93530b8e9884501a946baac37ad992c59f493362419ebeb9a8a6a9099088fb401654cb46bc854ff1f9344f76fd299d243d825e57597d170084e90e38b14d08aadd7ea7b74296ac49f9303d91425ea4ed6e8b71cfe55d7a1403f166efbf3bb5571547c03842be6c5e52e0ebedcd8fddb45fe433b7c0f311fa7d6ae7df712240d05eb5a694748f0dd4aba2c019096f9b6e49a6f08351547446afad0aa974515faed3d9fb08327b49310d1ef71290bbe708279971b1a9bc8ed46cfaa3b05306be3f9db9f5ccbc74db515e289922881d7ae9a29effb0123051365141568d0b84ac8fe447612c645bc5197fbcdf97718f2dc621b40f3bed015f92914e0174c9e86931cd5630cb995e829ad97106a5b94500e6659bd24f83d5b4bfe4a22015e3f22ed1dec8774d66aa38e1f2baf17c1d2b45e7d246c975325f9688d1a4fb189bd0aa46ce0178ce5be1757ac92760864c0d420c91caee5dab34ce966bf7a12473f1efa15975a7d038ebccc90f52718e3379e395e78a3f16fb662f9e8abffb88c8c981f5bb5478a707980def4aea834512310c3179677d3e6e540a342147a581ec731d9953ffd0fbf6c17b9d0b2ff956c9cc209ce37795a38fafd73cd21db8d621dc6a263527393a7f898d9c21df057262d1c7a8b5e72f2c9c5ab4edc826bf05a27e8ed28e6264e182aa655a20a98eade939992629ba6af822cb23e3d20e9b087d9cb63801bd55ea8e021d0734f1dab5b433aa5bfba85d266ff6f40b15a5d160ed642061c1d2c09dae2ecc43a26bbe2ab445f7fd828c582326e19ecab32bc1982554c9dc3c85600262e2c0493206f2cf6a72a6cf28e1414177389422cdeef2513d9b7ef866bcd2fcbc099821e97c5c351240a51e3c3d7279601d6426394c983098c4cbdc78d342a4f5ef6649db247c6f1c673e1c4fd07794e76f9065da511b3d16bb70a02a7814bf70e886d216480efd9be60dbae5bfb394e4dacce6a38c4c8a0ecb15427f7d39b87fcf87eb14088b35c778ee2dfe5bd4620da3d4de652684ef299f02fdfd15abb6d11e5a5e376a4280a8cdc6a86cba1011961a4d6f0716c452542cefafee8f45c7ff4e9fae5679a9b90d664e75d0b11c5417ed73682c01a8c878e5f1064c4604a9dc7a0fbca6e2bdb4304ec26f456bb58287ad7c9357332ffc22c9ce64845614a0cf593b27cca61ffe00e2faff05feb15de2162f85fef738c73ffd280f4c909d66d146d919b965cc566feba454bfd0734d77cc26498c2acb208edb9da565ad5937eb57bbe8f5903a4ce616c28664b6e4f4c10938873e64e9f2f9cae7a46796239e4829ef3f96381d76aae94ace85585f400d0983adef16208ed38d87cdfb7c64b018310e37d8ac5201a9c571dc4c3c84ef5b837c200755c1e9fef692a32c7ba0b18917974abe98fab529e4357d6428895f1026e3abeb15a1d5b5cfebd7b93c9b52320d0d9a95c529177bb74d5ff84feda87c3f41571c145ed4dc9aee0ef3bc5d19f590d29a4909840bf35fe800ea74b4c105dcd4f0588265b2a9e1d822917009c795b2cf907443fba595a306bf5f1927ac8ac69aade8c7edba45ec44c5e19dd9fee26280ee10f5e1b645e90df05f21c3f136bf41478814cfd067980143ce2f7882b9fc2b3b6ff36a93df64da9f4db2a52cbbc0a3676187afb66b101808398c6fb86a99124ebff81b14eb7534ff68ca8871ee5e4d3250f779c2543b31126f4b021fdfea5f2aea652e5568dc8bd8a7a16f918f464f1bb20f146fc1e3e69e4dd4e79e71299313dd246b076b6078218a5bbcfc65d3a6cb7d06b874513364fdce78a8bbe48eeee86bd43ff6cfda5e45df204f2b3e0713f79ea605ae9c40f53725feba0fa101a6fc1102dc30cacb0c654702211280dca757f1784e65ea2803b67225f78ded68c8a9352e0bbb06b042ddea4a5b59d496efc7a78154b18d3a5085daddf87f1ec3670ddd4c6eaa5cbcb49f7531f195ab88215c1bfc0b838ce0b892f060b894a083e1cd6d9250df5bd725157ae67bb1c62597be1184fa06e23557150bec57df467d6b1808447d7a0abea8723fc9c5c033553bdeaddbaf8d99b37ac1e90c07a8d11dba8f25ed5f876f2df21d0dd26961a55ad0614123288d569b2163da2595c9b29fd1742afa8d83b7a70fc834fbfe55afdc69b367a6d8730ec317844a088d351cba691e3fa41ee0c7bada66f9aa966c00356b9a87cbef34559c728ec2cbeb252218453b486370bdc89a844ff6214a23de55d3a21052b6c946f46c0d101573927e326d1dea09148e533b47aa1899d10968af2780ef3179d0b399bd2cefa61ab5efd8fe6dfeacbee45aa91d964142c2ef33c7e144520db591b220a2d3e99c4d46e680fa4da8c7980a689483312251d2eda13fe59d50e99d9a595d8dded9290e75136733e733a04493e62fec5dd478570fba6053ccae9435d739998a56b09d0c174bfbb399031c7288a222a37b16ae03d84dec0fd121bf3ed4dba92e373e189d35ef3aa3a7461ad5f32d6771388a090fb2c4924a8f029a3a77571a136327d9d45bca8994533da42dd4c37d0ed7fe57be9986e2c8fbb688ccef0c1676a3e9747d35a824e884343c33b87a8d919977b99e248b38404855a1e8289bd57115a64c4cc5a63d803898e475772ea25eed15615dce31a5bbf0404ffd5757fd7989a9cc021e26251b4e21ba642b85417938e008b6dd8f9c511db375140b42f059008c207620cf57c3e4566a402ff8115a5450f5f07b578d4dcc9f691fb78971262f43999af914cddd5956e965edcd71cd4590940ad055f89ac5c7d5c2c7133f945e351bc1e0e07c175957e644e91a83813cd4abc292764db2f94c410a271ed3a0bb950acae4bca85876ed6b67809ac0c6d0707b73fbdb77019b546ac9e1e75695c9a51ad829bb7f20f6aa44598504ed13ecae314513cadd765af2a19ddb2abe33bbd4f53fb122f34a251a3cc112af7d95ef55c8f36d2c4b4e221b479cd117bacd9634373866fb51990d171b21cdd20e8e47404d7ff2cc78abd1ef9f5fce67a3f0aeffa832cdf51969480582a55aa93156749f12d8747b5992728cbf9af42a268e62384fa96538fc72de91b2926e33ec07d78d842038a9126cc009f08e6b689c7fe62cdd99535662c50",
+      "user": "ss:763130cff59c0fbfedc7f6033a3f15a86d1afa66a0b1704aa7ac7da70cf17dece3bc4c8a98a0d7b55d46c3ef94385e0d3e88cd26b4a5059e5315cb5f1ad429",
+      "pass": "ss:7631308cf13149ece58822925576e405ba8565760d3e82fbda9682a29b3541d362e0f80a2111821fc2dcc4c2d3da3d7d557f",
       "authType": "login",
       "clientId": "",
       "clientSecret": "",

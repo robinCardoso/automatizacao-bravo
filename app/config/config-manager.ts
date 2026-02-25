@@ -91,7 +91,6 @@ const SiteConfigSchema = z.object({
   downloadPath: z.string().optional(),
   renamePattern: z.string().optional(),
   reportType: z.string().optional(),
-  primaryKeys: z.array(z.string()).optional(),
   uf: z.string().default('SC'),
   credentials: z.object({
     username: z.string(),
@@ -115,7 +114,8 @@ const PresetSchema = z.object({
     value: z.string().optional(),
     date: z.string().optional(),
     group: z.string().optional(),
-    category: z.string().optional()
+    subGroup: z.string().optional(),
+    category: z.string().optional() // Mantendo category por compatibilidade se necessário
   }).optional(),
 
   createdAt: z.string().optional(),
@@ -186,6 +186,11 @@ export interface SchemaMap {
     group?: string;
     category?: string;
   };
+  filteringRules?: Array<{
+    field: string;
+    operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'empty' | 'notEmpty';
+    value?: string;
+  }>;
 }
 
 export interface SchemaMaps {
@@ -194,14 +199,23 @@ export interface SchemaMaps {
 
 export class ConfigManager {
   private static instance: ConfigManager;
-  private config: AppConfig;
+  private config: AppConfig | null = null;
   private configPath: string;
   private schemaMaps: SchemaMaps = {};
 
   private constructor() {
     this.configPath = AppPaths.getConfigPath();
-    this.config = this.loadConfig();
+    // this.config = this.loadConfig(); // DEFERRADO: Carregamento no primeiro acesso
     this.loadSchemaMaps();
+  }
+
+  /**
+   * Garante que a configuração esteja carregada
+   */
+  private ensureConfigLoaded(): void {
+    if (!this.config) {
+      this.config = this.loadConfig();
+    }
   }
 
   /**
@@ -243,6 +257,8 @@ export class ConfigManager {
   }
 
   private loadConfig(): AppConfig {
+    // ... (unchanged implementation)
+    // Keep implementation but ensure it returns AppConfig
     try {
       // MIGRACAO AUTOMÁTICA: Se o config novo não existe mas o antigo existe, migra!
       const oldConfigPath = path.join(process.cwd(), 'app/config/app-config.json');
@@ -325,10 +341,14 @@ export class ConfigManager {
   }
 
   public getConfig(): AppConfig {
+    if (!this.config) {
+      this.config = this.loadConfig();
+    }
     return { ...this.config };
   }
 
   public saveConfig(config: AppConfig): void {
+    // ... implementation ...
     try {
       const validatedConfig = AppConfigSchema.parse(config);
 
@@ -367,10 +387,12 @@ export class ConfigManager {
   // ===== MÉTODOS DE PRESET =====
 
   public getPresets(): Preset[] {
-    return [...(this.config.presets || [])];
+    this.ensureConfigLoaded();
+    return [...(this.config!.presets || [])];
   }
 
   public addPreset(preset: Preset): void {
+    this.ensureConfigLoaded();
     const validatedPreset = PresetSchema.parse({
       ...preset,
       id: preset.id || require('crypto').randomUUID(),
@@ -378,32 +400,34 @@ export class ConfigManager {
       sites: preset.sites || []
     });
 
-    if (!this.config.presets) this.config.presets = [];
-    this.config.presets.push(validatedPreset);
-    this.saveConfig(this.config);
+    if (!this.config!.presets) this.config!.presets = [];
+    this.config!.presets.push(validatedPreset);
+    this.saveConfig(this.config!);
     logger.info(`Preset adicionado: ${preset.name}`);
   }
 
   public removePreset(presetId: string): void {
-    if (!this.config.presets) return;
-    const initialLength = this.config.presets.length;
-    this.config.presets = this.config.presets.filter(p => p.id !== presetId);
+    this.ensureConfigLoaded();
+    if (!this.config!.presets) return;
+    const initialLength = this.config!.presets.length;
+    this.config!.presets = this.config!.presets.filter(p => p.id !== presetId);
 
-    if (this.config.presets.length < initialLength) {
-      this.saveConfig(this.config);
+    if (this.config!.presets.length < initialLength) {
+      this.saveConfig(this.config!);
       logger.info(`Preset removido: ${presetId}`);
     }
   }
 
   public updatePreset(presetId: string, updatedPreset: Partial<Preset>): void {
-    if (!this.config.presets) return;
-    const index = this.config.presets.findIndex(p => p.id === presetId);
+    this.ensureConfigLoaded();
+    if (!this.config!.presets) return;
+    const index = this.config!.presets.findIndex(p => p.id === presetId);
     if (index !== -1) {
-      this.config.presets[index] = PresetSchema.parse({
-        ...this.config.presets[index],
+      this.config!.presets[index] = PresetSchema.parse({
+        ...this.config!.presets[index],
         ...updatedPreset
       });
-      this.saveConfig(this.config);
+      this.saveConfig(this.config!);
       logger.info(`Preset atualizado: ${presetId}`);
     }
   }
@@ -411,12 +435,14 @@ export class ConfigManager {
   // ===== MÉTODOS DE SITE ISOLADOS POR PRESET =====
 
   public getPresetSites(presetId: string): SiteConfig[] {
-    const preset = this.config.presets?.find(p => p.id === presetId);
+    this.ensureConfigLoaded();
+    const preset = this.config!.presets?.find(p => p.id === presetId);
     return preset?.sites || [];
   }
 
   public addSiteToPreset(presetId: string, site: SiteConfig): void {
-    const preset = this.config.presets?.find(p => p.id === presetId);
+    this.ensureConfigLoaded();
+    const preset = this.config!.presets?.find(p => p.id === presetId);
     if (!preset) throw new Error(`Preset não encontrado: ${presetId}`);
 
     const validatedSite = SiteConfigSchema.parse({
@@ -426,37 +452,40 @@ export class ConfigManager {
 
     if (!preset.sites) preset.sites = [];
     preset.sites.push(validatedSite);
-    this.saveConfig(this.config);
+    this.saveConfig(this.config!);
     logger.info(`Site "${site.name}" adicionado ao preset "${preset.name}"`);
   }
 
   public removeSiteFromPreset(presetId: string, siteId: string): void {
-    const preset = this.config.presets?.find(p => p.id === presetId);
+    this.ensureConfigLoaded();
+    const preset = this.config!.presets?.find(p => p.id === presetId);
     if (!preset) return;
 
     const initialLength = preset.sites?.length || 0;
     preset.sites = preset.sites?.filter(s => s.id !== siteId) || [];
 
     if (preset.sites.length < initialLength) {
-      this.saveConfig(this.config);
+      this.saveConfig(this.config!);
       logger.info(`Site removido do preset: ${siteId}`);
     }
   }
 
   public updateSiteInPreset(presetId: string, siteId: string, updatedSite: Partial<SiteConfig>): void {
-    const preset = this.config.presets?.find(p => p.id === presetId);
+    this.ensureConfigLoaded();
+    const preset = this.config!.presets?.find(p => p.id === presetId);
     if (!preset || !preset.sites) throw new Error('Preset ou site não encontrado');
 
     const index = preset.sites.findIndex(s => s.id === siteId);
     if (index === -1) throw new Error(`Site não encontrado: ${siteId}`);
 
     preset.sites[index] = { ...preset.sites[index], ...updatedSite };
-    this.saveConfig(this.config);
+    this.saveConfig(this.config!);
     logger.info(`Site atualizado no preset: ${siteId}`);
   }
 
   public getSiteFromPreset(presetId: string, siteId: string): SiteConfig | undefined {
-    const preset = this.config.presets?.find(p => p.id === presetId);
+    this.ensureConfigLoaded();
+    const preset = this.config!.presets?.find(p => p.id === presetId);
     return preset?.sites?.find(s => s.id === siteId);
   }
 
@@ -464,15 +493,17 @@ export class ConfigManager {
 
   /** @deprecated Use getPresetSites(presetId) */
   public getSites(): SiteConfig[] {
+    this.ensureConfigLoaded();
     logger.warn('[DEPRECADO] getSites() chamado. Use getPresetSites(presetId)');
     // Retorna todos os sites de todos os presets (fallback)
-    return this.config.presets?.flatMap(p => p.sites || []) || [];
+    return this.config!.presets?.flatMap(p => p.sites || []) || [];
   }
 
   /** @deprecated Use getSiteFromPreset(presetId, siteId) */
   public getSiteById(id: string): SiteConfig | undefined {
+    this.ensureConfigLoaded();
     logger.warn('[DEPRECADO] getSiteById() chamado. Use getSiteFromPreset()');
-    for (const preset of this.config.presets || []) {
+    for (const preset of this.config!.presets || []) {
       const site = preset.sites?.find(s => s.id === id);
       if (site) return site;
     }
@@ -485,6 +516,7 @@ export class ConfigManager {
    * Exporta todas as configurações em um objeto serializável
    */
   public exportConfig(): any {
+    this.ensureConfigLoaded();
     try {
       const exportData = {
         version: '1.0',
@@ -504,6 +536,7 @@ export class ConfigManager {
    * Importa configurações de um objeto exportado
    */
   public importConfig(importedData: any): { presetsAdded: number; presetsUpdated: number; warnings: string[] } {
+    this.ensureConfigLoaded();
     try {
       const warnings: string[] = [];
       let presetsAdded = 0;
@@ -518,7 +551,7 @@ export class ConfigManager {
 
       // Processa cada preset
       for (const importedPreset of importedConfig.presets || []) {
-        const existingPreset = this.config.presets?.find(p => p.id === importedPreset.id);
+        const existingPreset = this.config!.presets?.find(p => p.id === importedPreset.id);
 
         if (existingPreset) {
           // Atualiza preset existente

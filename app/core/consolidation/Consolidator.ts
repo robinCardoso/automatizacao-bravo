@@ -321,20 +321,34 @@ export class Consolidator {
         }
 
         return data.filter(row => {
+            // 1. Validação de Integridade (Totalizadores/Linhas Vazias)
+            if (primaryKeys.length > 0) {
+                const hasAtLeastOnePK = primaryKeys.some(k => {
+                    const val = row[k];
+                    return val !== undefined && val !== null && String(val).trim() !== '';
+                });
+
+                // Se a linha não tem NENHUMA chave primária preenchida, é lixo/totalizador.
+                if (!hasAtLeastOnePK) {
+                    return false;
+                }
+            }
+
+            // 2. Deduplicação
             let signature = "";
 
             if (primaryKeys.length > 0) {
-                // Assinatura baseada nas chaves primárias
+                // Assinatura baseada nas chaves primárias (Padronizado com DiffEngine)
                 signature = primaryKeys.map(k => {
                     const val = row[k];
-                    return String(val ?? '').trim();
-                }).join('::'); // Separador diferente para evitar colisão simples
+                    return `|${String(val ?? '').trim()}|`;
+                }).join('::');
             } else {
                 // Fallback: Assinatura baseada em todos os dados factuais
                 signature = Object.entries(row)
                     .filter(([k]) => !metadataCols.includes(k) && !k.startsWith('ssp_'))
-                    .map(([_, v]) => String(v ?? '').trim())
-                    .join('|');
+                    .map(([_, v]) => `|${String(v ?? '').trim()}|`)
+                    .join('::'); // Alterado para :: para padronizar
             }
 
             if (seen.has(signature)) return false;

@@ -9,4 +9,10 @@ export interface SchemaMap {
 
   // Colunas relevantes para diff (opcional)
   compareFields?: string[];
+
+  filteringRules?: Array<{
+    field: string;
+    operator: 'equals' | 'contains' | 'startsWith' | 'endsWith' | 'empty' | 'notEmpty';
+    value?: string;
+  }>;
 }

@@ -35,9 +35,10 @@ export class StepExecutor {
   private customBasePath?: string;
   private currentPreset?: Preset;
 
+  private checkCancellation?: () => boolean;
   private lastDiffResult: (DiffResult & { currentFile: string, uf: string }) | null = null;
 
-  constructor(page: Page, siteConfig: SiteConfig, defaultTimeout: number = 30000, defaultRetries: number = 3, actionDelay: number = 1000, customBasePath?: string, currentPreset?: Preset) {
+  constructor(page: Page, siteConfig: SiteConfig, defaultTimeout: number = 30000, defaultRetries: number = 3, actionDelay: number = 1000, customBasePath?: string, currentPreset?: Preset, checkCancellation?: () => boolean) {
     this.page = page;
     this.siteConfig = siteConfig;
     this.defaultTimeout = defaultTimeout;
@@ -46,6 +47,7 @@ export class StepExecutor {
     this.customBasePath = configManager.resolvePath(customBasePath);
     this.selectorResolver = new SelectorResolver(page);
     this.currentPreset = currentPreset;
+    this.checkCancellation = checkCancellation;
 
     // NOVO: Garante que a pasta base exista logo no início
     if (this.customBasePath) {
@@ -61,6 +63,10 @@ export class StepExecutor {
    * Executa um único step
    */
   async executeStep(step: Step): Promise<void> {
+    if (this.checkCancellation && this.checkCancellation()) {
+      throw new Error('Execução cancelada pelo usuário');
+    }
+
     automationLogger.info(`Executando step: ${step.type}`);
 
     // Aplica delay entre ações se configurado
@@ -539,7 +545,7 @@ export class StepExecutor {
           identity,
           tempPath,
           sspBaseDir,
-          this.siteConfig.primaryKeys || this.currentPreset?.primaryKeys // Passa as chaves customizadas ou do preset
+          this.currentPreset?.primaryKeys // Passa as chaves do preset
         );
 
         // Armazena o resultado para o AutomationEngine coletar

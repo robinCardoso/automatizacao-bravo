@@ -10,11 +10,11 @@
     "dev": "npm run build && electron .",
     "watch": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dist": "npm run build && electron-builder --win --x64",
+    "dist": "node scripts/ensure-license-utf8-bom.js && npm run build && electron-builder --win --x64",
     "dist:full": "powershell -Command \"Stop-Process -Name 'Automatizador*' -Force -ErrorAction SilentlyContinue; Remove-Item -Recurse -Force release -ErrorAction SilentlyContinue; npm run dist\"",
-    "dist:dir": "npm run build && electron-builder --win --x64 --dir",
-    "pack": "npm run build && electron-builder --win --x64 --dir",
-    "dist:portable": "npm run build && electron-builder --win zip --x64"
+    "dist:dir": "node scripts/ensure-license-utf8-bom.js && npm run build && electron-builder --win --x64 --dir",
+    "pack": "node scripts/ensure-license-utf8-bom.js && npm run build && electron-builder --win --x64 --dir",
+    "dist:portable": "node scripts/ensure-license-utf8-bom.js && npm run build && electron-builder --win zip --x64"
   },
   "keywords": [
     "automação",

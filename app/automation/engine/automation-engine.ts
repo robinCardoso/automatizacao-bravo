@@ -106,6 +106,11 @@ export class AutomationEngine {
       automationLogger.info(`Iniciando processamento de ${sitesToRun.length} sites`);
 
       for (const site of sitesToRun) {
+        if (!this.isRunning) {
+          automationLogger.info('Automação interrompida pelo usuário.');
+          break;
+        }
+
         try {
           const siteWithCredentials = { ...site };
           if (currentPreset) {
@@ -238,8 +243,8 @@ export class AutomationEngine {
   private async processSite(site: SiteConfig, customBasePath?: string, currentPreset?: Preset): Promise<AutomationResult> {
     const siteStartTime = Date.now();
 
-    // Resolve PKs: Prioridade Site > Prioridade Preset > Prioridade Global (schemaMaps)
-    let resolvedPKs = site.primaryKeys || currentPreset?.primaryKeys;
+    // Resolve PKs: Prioridade Preset > Prioridade Global (schemaMaps)
+    let resolvedPKs = currentPreset?.primaryKeys;
 
     if (!resolvedPKs || resolvedPKs.length === 0) {
       const globalSchema = configManager.getSchemaByType(currentPreset?.type || site.reportType || '');
@@ -276,7 +281,8 @@ export class AutomationEngine {
       this.stepExecutor = new StepExecutor(
         page, site, Math.max(config.defaultTimeout || 30000, 60000),
         config.defaultRetries || 3, config.actionDelay || 1000,
-        customBasePath, currentPreset
+        customBasePath, currentPreset,
+        () => !this.isRunning // Função de cancelamento
       );
 
       for (let i = 0; i < site.steps.length; i++) {

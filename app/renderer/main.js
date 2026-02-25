@@ -287,8 +287,17 @@ window.sendTestEmail = async () => {
 window.showHelp = () => {
     Utils.log('❓ Ajuda: Consulte a documentação interna.');
 };
-window.exportLogs = () => {
-    Utils.showNotification('Exportação de logs em desenvolvimento', 'warning');
+window.exportLogs = async () => {
+    try {
+        const result = await window.electronAPI.openLogsFolder();
+        if (result?.success) {
+            Utils.showNotification('Pasta de logs aberta no Explorador de Arquivos.', 'success');
+        } else {
+            Utils.showNotification(result?.message || 'Não foi possível abrir a pasta de logs.', 'error');
+        }
+    } catch (error) {
+        Utils.showNotification('Erro ao abrir pasta de logs.', 'error');
+    }
 };
 
 // Listeners do Electron (MIGRADOS DO ORIGINAL)

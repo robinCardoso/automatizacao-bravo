@@ -132,6 +132,65 @@ export class CatalogService {
     public getCatalogSize(): number {
         return Object.keys(this.catalog).length;
     }
+
+    /**
+     * Manually update or insert a product entry in the catalog.
+     * Used for fixing "NÃO IDENTIFICADO" items.
+     */
+    public updateProduct(reference: string, info: Partial<ProductInfo>): void {
+        if (!reference) {
+            throw new Error('Reference is required');
+        }
+
+        const existing = this.catalog[reference] || {};
+
+        this.catalog[reference] = {
+            brand: info.brand || existing.brand,
+            group: info.group || existing.group,
+            subGroup: info.subGroup || existing.subGroup,
+            description: info.description || existing.description,
+            lastUpdated: new Date().toISOString()
+        };
+
+        this.isDirty = true;
+        this.saveCatalog();
+        automationLogger.info(`[CatalogService] Manually updated product: ${reference}`);
+    }
+
+    /**
+     * Batch update multiple products at once.
+     * Used for Excel import workflow.
+     */
+    public batchUpdateProducts(items: Array<{ ref: string; brand?: string; group?: string; subGroup?: string }>): number {
+        let updated = 0;
+        const now = new Date().toISOString();
+
+        for (const item of items) {
+            if (!item.ref) continue;
+
+            const existing = this.catalog[item.ref] || {};
+
+            // Only update if at least one field is provided
+            if (item.brand || item.group || item.subGroup) {
+                this.catalog[item.ref] = {
+                    brand: item.brand || existing.brand,
+                    group: item.group || existing.group,
+                    subGroup: item.subGroup || existing.subGroup,
+                    description: existing.description,
+                    lastUpdated: now
+                };
+                updated++;
+            }
+        }
+
+        if (updated > 0) {
+            this.isDirty = true;
+            this.saveCatalog();
+            automationLogger.info(`[CatalogService] Batch updated ${updated} products.`);
+        }
+
+        return updated;
+    }
 }
 
 export const catalogService = new CatalogService();

@@ -4,12 +4,14 @@
       "ID",
       "PRODCOD",
       "NNF",
+      "DataE",
       "Referencia"
     ],
     "dashboardMapping": {
       "value": "Total Liq",
       "date": "DataE",
-      "group": "ORIGEM_SITE"
+      "group": "Grupo",
+      "subGroup": "Sub-Grupo"
     }
   },
   "PEDIDO": {
@@ -22,7 +24,34 @@
     "dashboardMapping": {
       "value": "Total Liq R$",
       "date": "Data Proc",
-      "group": "ORIGEM_UF"
-    }
+      "group": "Grupo",
+      "subGroup": "Sub-Grupo"
+    },
+    "filteringRules": [
+      {
+        "field": "Data Proc",
+        "operator": "empty"
+      },
+      {
+        "field": "Doc",
+        "operator": "equals",
+        "value": "TOTAL"
+      },
+      {
+        "field": "Doc",
+        "operator": "equals",
+        "value": "TOTAIS"
+      },
+      {
+        "field": "*",
+        "operator": "contains",
+        "value": "TOTAL GERAL"
+      },
+      {
+        "field": "*",
+        "operator": "contains",
+        "value": "Total Geral"
+      }
+    ]
   }
 }

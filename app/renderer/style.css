@@ -979,7 +979,14 @@ body {
     font-weight: 700;
 }
 
-/* DASHBOARD */
+/* DASHBOARD – cards próximos aos filtros */
+#view-dashboard .dashboard-cards-body {
+    padding-top: 6px;
+}
+#view-dashboard .dashboard-header-compact .dashboard-filter-pills {
+    margin-top: 4px;
+}
+
 .dashboard-summary {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1016,6 +1023,41 @@ body {
     font-size: 24px;
     font-weight: 800;
     color: #1a252f;
+}
+
+/* Barra de submenus dos gráficos */
+.dashboard-chart-submenus {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 8px;
+}
+.chart-submenu-btn {
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+}
+.chart-submenu-btn:hover {
+    color: #334155;
+    background: #f1f5f9;
+}
+.chart-submenu-btn.active {
+    color: #1e40af;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+}
+.dashboard-chart-panel {
+    display: none;
+}
+.dashboard-chart-panel.active {
+    display: block;
 }
 
 .dashboard-grid {
@@ -1062,6 +1104,112 @@ body {
     border-radius: 6px;
     border: 1px solid #dce4ec;
     background: white;
+}
+
+/* Combobox nos filtros do dashboard */
+.dash-combobox {
+    position: relative;
+}
+.dash-combobox-input {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 6px;
+    border: 1px solid #dce4ec;
+    background: white;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.dash-combobox-input::placeholder {
+    color: #7f8c8d;
+    font-weight: 600;
+}
+.dash-combobox-input:hover,
+.dash-combobox.open .dash-combobox-input {
+    border-color: #3498db;
+}
+.dash-combobox-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 2px;
+    background: white;
+    border: 1px solid #dce4ec;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    z-index: 1000;
+    max-height: 220px;
+    flex-direction: column;
+}
+.dash-combobox.open .dash-combobox-dropdown {
+    display: flex;
+}
+.dash-combobox-search {
+    padding: 6px 8px;
+    font-size: 11px;
+    border: none;
+    border-bottom: 1px solid #ecf0f1;
+    border-radius: 6px 6px 0 0;
+    outline: none;
+    flex-shrink: 0;
+}
+.dash-combobox-list {
+    overflow-y: auto;
+    max-height: 180px;
+    padding: 4px 0;
+}
+.dash-combobox-option {
+    padding: 6px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dash-combobox-option:hover,
+.dash-combobox-option.selected {
+    background: #ecf0f1;
+}
+.dash-combobox-option[data-value=""] {
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* Pills de filtros ativos */
+.dashboard-filter-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+    min-height: 24px;
+}
+.dashboard-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 999px;
+    background: #ecf0f1;
+    color: #2c3e50;
+    border: 1px solid #dce4ec;
+}
+.dashboard-filter-pill .pill-clear {
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #7f8c8d;
+    font-size: 14px;
+    line-height: 1;
+}
+.dashboard-filter-pill .pill-clear:hover {
+    color: #e74c3c;
 }
 
 /* BOTÃO DE ALERTA/PERIGO OUTLINE */

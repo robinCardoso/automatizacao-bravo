@@ -185,14 +185,14 @@ export const Presets = {
             dashboardMapping: {
                 value: document.getElementById('pMapValue').value.trim(),
                 date: document.getElementById('pMapDate').value.trim(),
-                group: document.getElementById('pMapGroup').value.trim()
+                group: document.getElementById('pMapGroup').value.trim(),
+                subGroup: document.getElementById('pMapSubGroup').value.trim()
             },
             schedule,
-            sites: [] // Novos presets começam sem sites. Em edição, precisamos preservar.
+            sites: []
         };
 
         try {
-            // Em caso de edição, recuperar sites existentes
             if (id) {
                 const existingPresets = await window.electronAPI.getPresets();
                 const existing = existingPresets.find(p => p.id === id);
@@ -206,10 +206,7 @@ export const Presets = {
 
             this.hidePresetForm();
             this.loadPresets();
-            this.loadPresetsToMain(); // Atualiza seletor da home
-            // Sidebar update handles inside loadPresets (which calls getPresets again)
-            // But to be instantaneous without fetch:
-            // Actually loadPresets calls getPresets, so it will get the updated one.
+            this.loadPresetsToMain();
         } catch (error) {
             Utils.showNotification(`Erro ao salvar: ${error.message}`, 'error');
         }
@@ -221,18 +218,10 @@ export const Presets = {
             const preset = presets.find(p => p.id === id);
 
             if (preset) {
-                // Define globalmente qual preset estamos editando
                 State.editingPresetId = id;
                 Utils.log(`✏️ Editando preset: ${id}`);
-
-                // Se já estivermos na aba Presets, mostra form.
-                // Mas a UX original sugere ir para a aba Sites. 
-                // O código antigo loadSites() mostrava header "Editando: ...".
-                // Vamo manter o fluxo:
-                // 1. Abre a aba Sites com contexto desse preset
-
                 UI.switchConfigTab('sitesTab');
-                // Dispara carregamento de sites
+
                 if (SitesModule) {
                     SitesModule.loadSites();
                 } else {
@@ -245,30 +234,14 @@ export const Presets = {
         }
     },
 
-    // Função auxiliar chamada pelo botão "Editar" dentro do Form de Presets (casos raros ou edição direta)
-    // Na verdade, o form de Preset é para editar DADOS do preset (nome, login).
-    // O código original editPreset(id) fazia:
-    // 1. Checkar se tem sites.js available?
-    // Analisando o original: editPreset(id) chamava log e... wait.
-    // Original editPreset(id) linha 985:
-    // - Carrega dados no Form de Preset
-    // - Mostra PresetForm.
-    // - E TAMBÉM definia currentEditingPresetId?
-
-    // CORREÇÃO: No original, editPreset(id) preenche o formulário de preset.
-    // Ao clicar em SALVAR, salva.
-    // Para ver SITES, o usuario clica em "Editar" e depois TEM que ir na aba SITES?
-    // O original loadSites() verifica currentEditingPresetId.
-
-    // Vamos re-implementar `editPreset` para PREENCHER O FORM.
     async fillPresetForm(id) {
         const presets = await window.electronAPI.getPresets();
         const preset = presets.find(p => p.id === id);
 
         if (preset) {
-            State.editingPresetId = id; // Importante para loadSites saber quem é o pai
+            State.editingPresetId = id;
 
-            this.showPresetForm(); // Mostra o form
+            this.showPresetForm();
 
             document.getElementById('presetId').value = preset.id;
             document.getElementById('pName').value = preset.name;
@@ -277,15 +250,13 @@ export const Presets = {
             document.getElementById('pPass').value = preset.pass;
             document.getElementById('pDestination').value = preset.destination || '';
 
-            // Novos campos: Primary Keys e Mapping
             document.getElementById('pPrimaryKeys').value = preset.primaryKeys ? preset.primaryKeys.join(', ') : '';
             if (preset.dashboardMapping && (preset.dashboardMapping.value || preset.dashboardMapping.date)) {
                 document.getElementById('pMapValue').value = preset.dashboardMapping.value || '';
                 document.getElementById('pMapDate').value = preset.dashboardMapping.date || '';
+                document.getElementById('pMapSubGroup').value = preset.dashboardMapping.subGroup || '';
                 document.getElementById('pMapGroup').value = preset.dashboardMapping.group || '';
-                document.getElementById('pMapCategory').value = preset.dashboardMapping.category || '';
             } else {
-                // Se não tem mapeamento próprio, tenta sugerir do global
                 this.suggestDefaultMapping(preset.type || 'vendas');
             }
 
@@ -293,8 +264,6 @@ export const Presets = {
                 document.getElementById('pSchedEnabled').checked = preset.schedule.enabled;
                 document.getElementById('pSchedMode').value = preset.schedule.mode || 'interval';
                 document.getElementById('pSchedInterval').value = preset.schedule.intervalHours || 3;
-
-                // Novos campos de política de compensação
                 document.getElementById('pCompensationPolicy').value = preset.schedule.compensationPolicy || 'immediate';
                 document.getElementById('pMaxCompensationDelay').value = preset.schedule.maxCompensationDelay || 24;
 
@@ -304,7 +273,6 @@ export const Presets = {
                 this.toggleScheduleMode();
             }
 
-            // Atualiza link para sites
             const container = document.getElementById('presetSiteLinks');
             if (container) {
                 container.innerHTML = `
@@ -343,7 +311,6 @@ export const Presets = {
         if (form) form.style.display = 'block';
         if (footer) footer.style.display = 'none';
 
-        // Listener para o tipo de preset (Vendas/Pedidos) sugerir mapeamentos automáticos
         const typeSelect = document.getElementById('pType');
         if (typeSelect && !typeSelect.dataset.listenerAdded) {
             typeSelect.addEventListener('change', (e) => {
@@ -351,17 +318,9 @@ export const Presets = {
             });
             typeSelect.dataset.listenerAdded = 'true';
         }
-
-        // Limpa campos se não for edição (mas se chamou fillPresetForm antes, já ta preenchido)
-        // Se chamado direto pelo botão "Criar Nova", limpamos.
-        // Como distinguir? Vamos assumir que quem chama limpa ou preenche.
-        // Vamos criar um `resetForm` separado ou limpar aqui se ID vazio?
-        // Como o botão "Criar" chama showPresetForm(), vamos limpar aqui caso o ID hidden esteja vazio ou se quisermos resetar.
-        // Melhor: Separar `openNewPresetForm`.
     },
 
     openNewPresetForm() {
-        // Limpa estado
         State.editingPresetId = null;
         document.getElementById('presetId').value = '';
         document.getElementById('pName').value = '';
@@ -369,13 +328,12 @@ export const Presets = {
         document.getElementById('pPass').value = '';
         document.getElementById('pDestination').value = '';
 
-        // Reset novos campos
         document.getElementById('pPrimaryKeys').value = '';
         document.getElementById('pMapValue').value = '';
         document.getElementById('pMapDate').value = '';
+        document.getElementById('pMapSubGroup').value = '';
         document.getElementById('pMapGroup').value = '';
 
-        // Reset agendamento
         document.getElementById('pSchedEnabled').checked = false;
         document.getElementById('pSchedMode').value = 'interval';
         document.getElementById('pSchedInterval').value = 3;
@@ -386,15 +344,11 @@ export const Presets = {
         this.toggleScheduleOptions();
         this.toggleScheduleMode();
 
-        // Sugere mapeamento padrão para o tipo inicial (geralmente vendas)
         this.suggestDefaultMapping('vendas');
 
         this.showPresetForm();
     },
 
-    /**
-     * Sugere mapeamentos do dashboard e chaves primárias baseados no schemaMaps.json
-     */
     async suggestDefaultMapping(type) {
         try {
             const schemas = await window.electronAPI.getSchemaMaps();
@@ -405,20 +359,20 @@ export const Presets = {
 
             if (config) {
                 const pkField = document.getElementById('pPrimaryKeys');
-                // Só preenche se estiver vazio para não sobrescrever edição manual do usuário
                 if (!pkField.value && config.primaryKey) {
                     pkField.value = config.primaryKey.join(', ');
                 }
 
-                if (config.dashboardMapping) {
-                    const mapValue = document.getElementById('pMapValue');
-                    const mapDate = document.getElementById('pMapDate');
-                    const mapGroup = document.getElementById('pMapGroup');
+                const mapValue = document.getElementById('pMapValue');
+                const mapDate = document.getElementById('pMapDate');
+                const mapSubGroup = document.getElementById('pMapSubGroup');
 
-                    if (!mapValue.value) mapValue.value = config.dashboardMapping.value || '';
-                    if (!mapDate.value) mapDate.value = config.dashboardMapping.date || '';
-                    if (!mapGroup.value) mapGroup.value = config.dashboardMapping.group || '';
-                }
+                if (!mapValue.value) mapValue.value = config.dashboardMapping.value || '';
+                if (!mapDate.value) mapDate.value = config.dashboardMapping.date || '';
+                if (!mapSubGroup.value) mapSubGroup.value = config.dashboardMapping.subGroup || '';
+
+                const mapGroup = document.getElementById('pMapGroup');
+                if (!mapGroup.value) mapGroup.value = config.dashboardMapping.group || '';
             }
         } catch (error) {
             console.error('[Presets] Erro ao sugerir mapeamento padrão:', error);

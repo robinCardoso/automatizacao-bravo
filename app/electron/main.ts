@@ -8,6 +8,7 @@ import { sessionManager } from '../automation/sessions/session-manager';
 import { schedulerService } from '../automation/engine/scheduler-service';
 import { notificationService } from '../core/notifications/NotificationService';
 import { dashboardService } from '../core/consolidation/DashboardService';
+import { AppPaths } from '../core/utils/AppPaths';
 import logger from '../config/logger';
 
 // Mantém uma referência global da janela e da bandeja para evitar que sejam fechadas pelo garbage collector
@@ -209,6 +210,20 @@ function registerIpcHandlers(): void {
     return { success: false, message: 'Arquivo não encontrado' };
   });
 
+  ipcMain.handle('open-logs-folder', async () => {
+    try {
+      const logsDir = AppPaths.getLogsPath();
+      if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true });
+      }
+      shell.openPath(logsDir);
+      return { success: true };
+    } catch (err: any) {
+      logger.warn(`[open-logs-folder] Erro ao abrir pasta de logs: ${err?.message ?? err}`);
+      return { success: false, message: err?.message ?? 'Não foi possível abrir a pasta de logs.' };
+    }
+  });
+
   ipcMain.handle('get-automation-status', async () => {
     return 'PARADA';
   });
@@ -306,6 +321,27 @@ function registerIpcHandlers(): void {
   ipcMain.handle('get-schema-maps', async () => {
     return configManager.getSchemaMaps();
   });
+
+  // Catalog correction handlers
+  ipcMain.handle('update-catalog-item', async (event, ref: string, info: any) => {
+    try {
+      const { catalogService } = await import('../core/services/CatalogService');
+      catalogService.updateProduct(ref, info);
+      return { success: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
+
+  ipcMain.handle('batch-update-catalog', async (event, items: any[]) => {
+    try {
+      const { catalogService } = await import('../core/services/CatalogService');
+      const updated = catalogService.batchUpdateProducts(items);
+      return { success: true, updated };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  });
 }
 
 function createWindow(): void {
@@ -376,8 +412,6 @@ function createWindow(): void {
     mainWindow = null;
   });
 }
-
-import { AppPaths } from '../core/utils/AppPaths';
 
 // Este método será chamado quando o Electron terminar a inicialização
 app.whenReady().then(() => {
