@@ -440,8 +440,27 @@ export class StepExecutor {
       return;
     }
 
+    // [MES_ATUAL] → nome curto no arquivo (ex: FEV2026)
+    if (valUpper === '[MES_ATUAL]' && endDate && endDate.includes('/')) {
+      const parts = endDate.trim().split('/');
+      if (parts.length === 3) {
+        const monthNames = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+        const month = monthNames[parseInt(parts[1], 10) - 1] || 'MES';
+        const year = parts[2];
+        this.currentPeriod = `${month}${year}`;
+        automationLogger.info(`[SSP] Período [MES_ATUAL]: ${this.currentPeriod}`);
+        return;
+      }
+    }
+
     try {
-      // Fallback para detecção por data (DD/MM/YYYY)
+      // Fallback: datas explícitas (ex: 01/01/2026,28/08/2026) → período único para o nome do arquivo
+      const norm = (s: string) => (s || '').trim().replace(/\//g, '_');
+      if (startDate && endDate && startDate.includes('/') && endDate.includes('/')) {
+        this.currentPeriod = `${norm(startDate)}_a_${norm(endDate)}`;
+        automationLogger.info(`[SSP] Período por datas informadas: ${this.currentPeriod}`);
+        return;
+      }
       const parts = endDate.split('/');
       if (parts.length === 3) {
         const monthNames = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];

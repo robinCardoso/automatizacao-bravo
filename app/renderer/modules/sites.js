@@ -89,6 +89,54 @@ export const Sites = {
             </button>
         `;
         list.appendChild(header);
+
+        // Seção: Passos pós-login do preset (compartilhados por todos os sites)
+        const presetStepsSection = document.createElement('div');
+        presetStepsSection.id = 'presetStepsSection';
+        presetStepsSection.style.cssText = 'padding: 16px; background: #f8fafc; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e2e8f0;';
+        presetStepsSection.innerHTML = `
+            <div class="config-section-title" style="margin-bottom: 8px;">📋 Passos pós-login do preset</div>
+            <p style="color: #64748b; font-size: 11px; margin-bottom: 12px;">Altere aqui uma vez e vale para todos os ${sites.length} sites deste preset.</p>
+            <p style="color: #0ea5e9; font-size: 10px; margin-bottom: 10px; background: #f0f9ff; padding: 6px 8px; border-radius: 4px;">💡 Para o sistema nomear os arquivos por período, use o passo <strong>Preencher Período</strong> com seletor <code>#dataIni,#dataFim</code> e valor <strong>[TRIM_ATUAL]</strong>, <strong>[MES_ATUAL]</strong> ou datas (ex: 01/01/2026,28/08/2026). Use o botão 📅 no valor para atalhos.</p>
+            <div style="display: flex; gap: 5px; margin-bottom: 5px; padding: 0 5px;">
+                <small style="width: 100px; color: #95a5a6; font-weight: 700; font-size: 9px; text-transform: uppercase;">Ação</small>
+                <small style="flex: 1; color: #95a5a6; font-weight: 700; font-size: 9px; text-transform: uppercase;">Seletor CSS ou URL</small>
+                <small style="width: 180px; color: #95a5a6; font-weight: 700; font-size: 9px; text-transform: uppercase;">Texto / Valor</small>
+                <small style="width: 25px;"></small>
+                <small style="width: 30px; color: #95a5a6; font-weight: 700; font-size: 9px; text-transform: uppercase;" title="Continuar em caso de erro">OPT</small>
+            </div>
+            <div id="presetStepsList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;"></div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <button class="btn btn-secondary" id="btnAddPresetStep" style="font-size: 10px; padding: 6px 12px;">➕ Adicionar passo</button>
+                <button class="btn btn-success" id="btnSavePresetSteps" style="font-size: 10px; padding: 6px 12px;">💾 Salvar passos do preset</button>
+                ${(!preset.steps || preset.steps.length === 0) && sites.some(s => s.steps?.length) ? '<button class="btn btn-secondary" id="btnCopyStepsFromFirst" style="font-size: 10px; padding: 6px 12px;">📋 Copiar do primeiro site</button>' : ''}
+            </div>
+        `;
+        list.appendChild(presetStepsSection);
+
+        const presetStepsListEl = document.getElementById('presetStepsList');
+        if (document.getElementById('btnCopyStepsFromFirst')) {
+            document.getElementById('btnCopyStepsFromFirst').onclick = () => {
+                const firstWithSteps = sites.find(s => s.steps?.length);
+                if (!firstWithSteps) return;
+                presetStepsListEl.innerHTML = '';
+                (firstWithSteps.steps || []).forEach(step => {
+                    const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError);
+                    presetStepsListEl.appendChild(row);
+                });
+                Utils.showNotification('Passos do primeiro site carregados. Clique em "Salvar passos do preset" para aplicar a todos.', 'info');
+            };
+        }
+        (preset.steps || []).forEach(step => {
+            const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError);
+            presetStepsListEl.appendChild(row);
+        });
+        presetStepsSection.querySelector('#btnAddPresetStep').onclick = () => {
+            const row = this.createStepRowElement();
+            presetStepsListEl.appendChild(row);
+        };
+        presetStepsSection.querySelector('#btnSavePresetSteps').onclick = () => this.savePresetSteps();
+
         list.querySelector('#btnBackToPresets').onclick = () => UI.switchConfigTab('presetsTab');
 
         if (sites.length === 0) {
@@ -126,7 +174,7 @@ export const Sites = {
                             <span style="font-size: 10px; padding: 2px 6px; background: #f1f2f6; color: #7f8c8d; border-radius: 4px;">${site.uf || 'SC'}</span>
                         </div>
                         <div style="font-size: 11px; color: #95a5a6;">URL: ${site.url || site.loginUrl || 'Não definida'}</div>
-                        <div style="font-size: 10px; color: #3498db; margin-top: 4px;">Ações configuradas: ${site.steps?.length || 0}</div>
+                        <div style="font-size: 10px; color: #3498db; margin-top: 4px;">${(preset.steps && preset.steps.length > 0) ? `Passos do preset: ${preset.steps.length}` : `Ações configuradas: ${site.steps?.length || 0}`}</div>
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-browser" data-id="${site.id}" style="padding: 6px 10px; min-width: 0; background: #e8f8f5; border-color: #a3e4d7;" title="Abrir Navegador para Login">🌐</button>
@@ -148,9 +196,12 @@ export const Sites = {
     },
 
 
-    showSiteForm() {
+    async showSiteForm() {
         const form = document.getElementById('siteForm');
-        if (form) form.style.display = 'block';
+        if (form) {
+            form.style.display = 'block';
+            setTimeout(() => form.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+        }
         const footer = document.getElementById('configModalFooter');
         if (footer) footer.style.display = 'none';
 
@@ -161,11 +212,74 @@ export const Sites = {
         document.getElementById('sPassField').value = '';
         document.getElementById('sLoginBtn').value = '';
         document.getElementById('sReportType').value = '';
-        // Removed sPrimaryKeys
         document.getElementById('sUF').value = 'SC';
         document.getElementById('sDest').value = '';
         document.getElementById('stepsList').innerHTML = '';
+        document.getElementById('siteCopyFrom').value = '';
 
+        const copySelect = document.getElementById('siteCopyFrom');
+        let currentPreset = null;
+        if (copySelect && State.editingPresetId) {
+            try {
+                const presets = await window.electronAPI.getPresets();
+                currentPreset = presets.find(p => p.id === State.editingPresetId);
+                const sites = currentPreset?.sites || [];
+                copySelect.innerHTML = '<option value="">— Nenhum (formulário em branco) —</option>' +
+                    sites.map(s => `<option value="${s.id}">${s.name || s.id} (${s.uf || '-'})</option>`).join('');
+                if (!copySelect.dataset.bound) {
+                    copySelect.dataset.bound = '1';
+                    copySelect.onchange = () => this.applyCopyFromSite(copySelect.value);
+                }
+            } catch (e) {
+                copySelect.innerHTML = '<option value="">— Nenhum —</option>';
+            }
+        }
+
+        const siteStepsBlock = document.getElementById('siteStepsBlock');
+        const presetStepsMessage = document.getElementById('presetStepsMessage');
+        if (siteStepsBlock && presetStepsMessage && currentPreset?.steps?.length > 0) {
+            siteStepsBlock.style.display = 'none';
+            presetStepsMessage.style.display = 'block';
+        } else if (siteStepsBlock && presetStepsMessage) {
+            siteStepsBlock.style.display = 'block';
+            presetStepsMessage.style.display = 'none';
+        }
+
+        if (SelectorUtils && SelectorUtils.setupAutoConvert) {
+            SelectorUtils.setupAutoConvert(document.getElementById('sUserField'));
+            SelectorUtils.setupAutoConvert(document.getElementById('sPassField'));
+            SelectorUtils.setupAutoConvert(document.getElementById('sLoginBtn'));
+        }
+    },
+
+    async applyCopyFromSite(siteId) {
+        if (!siteId || !State.editingPresetId) return;
+        const presets = await window.electronAPI.getPresets();
+        const preset = presets.find(p => p.id === State.editingPresetId);
+        const site = preset?.sites?.find(s => s.id === siteId);
+        if (!site) return;
+        const isNewSite = !document.getElementById('siteId').value;
+        this.populateFormFromSite(site, isNewSite);
+    },
+
+    populateFormFromSite(site, clearIdAndName = false) {
+        if (clearIdAndName) {
+            document.getElementById('siteId').value = '';
+            document.getElementById('sName').value = '';
+        }
+        document.getElementById('sLoginUrl').value = site.loginUrl || site.url || '';
+        document.getElementById('sUserField').value = site.usernameField || '';
+        document.getElementById('sPassField').value = site.passwordField || '';
+        document.getElementById('sLoginBtn').value = site.loginButton || '';
+        document.getElementById('sReportType').value = site.reportType || '';
+        document.getElementById('sUF').value = site.uf || 'SC';
+        document.getElementById('sDest').value = site.downloadPath || '';
+        const list = document.getElementById('stepsList');
+        list.innerHTML = '';
+        (site.steps || []).forEach(step => {
+            const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError);
+            list.appendChild(row);
+        });
         if (SelectorUtils && SelectorUtils.setupAutoConvert) {
             SelectorUtils.setupAutoConvert(document.getElementById('sUserField'));
             SelectorUtils.setupAutoConvert(document.getElementById('sPassField'));
@@ -238,12 +352,68 @@ export const Sites = {
         row.querySelector('.btn-up').onclick = () => this.insertStepAbove(row);
         row.querySelector('.btn-remove-step').onclick = () => row.remove();
 
+        const valueInput = row.querySelector('.step-value');
+        const datePresetBtn = row.querySelector('.btn-date-presets');
+        if (datePresetBtn && valueInput) {
+            datePresetBtn.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleDatePresetMenu(datePresetBtn, valueInput);
+            };
+        }
+
         if (SelectorUtils) {
             SelectorUtils.setupAutoConvert(row.querySelector('.step-selector'));
             SelectorUtils.setupAutoConvert(row.querySelector('.step-selector-2'));
         }
 
         return row;
+    },
+
+    /**
+     * Abre/fecha menu de tokens de período (ex.: [TRIM_ATUAL]) para o passo "Preencher Período".
+     */
+    toggleDatePresetMenu(anchor, valueInput) {
+        const existing = document.getElementById('date-preset-menu');
+        if (existing) {
+            existing.remove();
+            return;
+        }
+        const presets = [
+            { label: 'Trimestre atual (automático)', value: '[TRIM_ATUAL]' },
+            { label: 'Mês atual', value: '[MES_ATUAL]' }
+        ];
+        const menu = document.createElement('div');
+        menu.id = 'date-preset-menu';
+        menu.style.cssText = 'position: fixed; z-index: 10000; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 6px 0; min-width: 220px;';
+        const rect = anchor.getBoundingClientRect();
+        menu.style.left = `${rect.left}px`;
+        menu.style.top = `${rect.bottom + 4}px`;
+
+        const close = () => {
+            const m = document.getElementById('date-preset-menu');
+            if (m) m.remove();
+            document.removeEventListener('click', close);
+        };
+        presets.forEach(p => {
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.textContent = p.label;
+            item.style.cssText = 'display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; font-size: 12px; cursor: pointer; color: #334155;';
+            item.onmouseenter = () => { item.style.background = '#f1f5f9'; };
+            item.onmouseleave = () => { item.style.background = 'none'; };
+            item.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                valueInput.value = p.value;
+                valueInput.dispatchEvent(new Event('input', { bubbles: true }));
+                close();
+            };
+            menu.appendChild(item);
+        });
+
+        document.body.appendChild(menu);
+        setTimeout(() => document.addEventListener('click', close), 0);
     },
 
     async handleSaveSite() {
@@ -277,28 +447,29 @@ export const Sites = {
         });
 
         const reportType = document.getElementById('sReportType').value;
-        // Removed Primary Keys logic
-
-        const siteConfig = {
-            id,
-            name,
-            url,
-            loginUrl: url,
-            usernameField: document.getElementById('sUserField').value,
-            passwordField: document.getElementById('sPassField').value,
-            loginButton: document.getElementById('sLoginBtn').value,
-            reportType: document.getElementById('sReportType').value || undefined,
-            // primaryKeys removed as it's now handled by Presets
-            uf: document.getElementById('sUF').value || 'SC',
-            downloadPath: document.getElementById('sDest').value || undefined,
-            steps
-        };
 
         try {
             const presets = await window.electronAPI.getPresets();
             const preset = presets.find(p => p.id === State.editingPresetId);
 
             if (!preset) throw new Error('Preset não encontrado');
+
+            // Se o preset tem passos compartilhados, o site não armazena passos (engine usa preset.steps)
+            const stepsToSave = (preset.steps && preset.steps.length > 0) ? [] : steps;
+
+            const siteConfig = {
+                id,
+                name,
+                url,
+                loginUrl: url,
+                usernameField: document.getElementById('sUserField').value,
+                passwordField: document.getElementById('sPassField').value,
+                loginButton: document.getElementById('sLoginBtn').value,
+                reportType: document.getElementById('sReportType').value || undefined,
+                uf: document.getElementById('sUF').value || 'SC',
+                downloadPath: document.getElementById('sDest').value || undefined,
+                steps: stepsToSave
+            };
 
             if (!preset.sites) preset.sites = [];
             const existingIndex = preset.sites.findIndex(s => s.id === id);
@@ -322,6 +493,38 @@ export const Sites = {
         }
     },
 
+    async savePresetSteps() {
+        if (!State.editingPresetId) return;
+        const container = document.getElementById('presetStepsList');
+        if (!container) return;
+        const stepRows = container.querySelectorAll('.step-row');
+        const steps = Array.from(stepRows).map(row => {
+            const type = row.querySelector('.step-type').value;
+            let selector = row.querySelector('.step-selector').value;
+            let value = (row.querySelector('.step-value') && row.querySelector('.step-value').value) || '';
+            if (type === 'fillDateRange') {
+                const s2 = row.querySelector('.step-selector-2')?.value;
+                if (s2) selector = `${selector},${s2}`;
+            }
+            return {
+                type,
+                selector,
+                value: value || undefined,
+                continueOnError: row.querySelector('.step-optional')?.checked || false
+            };
+        });
+        try {
+            const presets = await window.electronAPI.getPresets();
+            const preset = presets.find(p => p.id === State.editingPresetId);
+            if (!preset) throw new Error('Preset não encontrado');
+            preset.steps = steps;
+            await window.electronAPI.savePreset(preset);
+            Utils.showNotification('Passos do preset salvos! Alteração vale para todos os sites.', 'success');
+        } catch (error) {
+            Utils.showNotification(`Erro ao salvar passos do preset: ${error.message}`, 'error');
+        }
+    },
+
     async editSite(id) {
         if (!State.editingPresetId) return;
 
@@ -330,22 +533,24 @@ export const Sites = {
         const site = preset?.sites?.find(s => s.id === id);
 
         if (site) {
-            this.showSiteForm();
+            await this.showSiteForm();
+            document.getElementById('siteCopyFrom').value = '';
             document.getElementById('siteId').value = site.id;
             document.getElementById('sName').value = site.name;
-            document.getElementById('sLoginUrl').value = site.loginUrl;
+            document.getElementById('sLoginUrl').value = site.loginUrl || site.url || '';
             document.getElementById('sUserField').value = site.usernameField;
             document.getElementById('sPassField').value = site.passwordField;
             document.getElementById('sLoginBtn').value = site.loginButton;
             document.getElementById('sReportType').value = site.reportType || '';
-            // Removed sPrimaryKeys population
             document.getElementById('sUF').value = site.uf || 'SC';
             document.getElementById('sDest').value = site.downloadPath || '';
 
+            const list = document.getElementById('stepsList');
+            list.innerHTML = '';
             if (site.steps) {
                 site.steps.forEach(step => {
                     const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError);
-                    document.getElementById('stepsList').appendChild(row);
+                    list.appendChild(row);
                 });
             }
         }

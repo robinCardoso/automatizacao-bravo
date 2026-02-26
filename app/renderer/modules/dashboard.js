@@ -390,16 +390,20 @@ export const Dashboard = {
                 this.charts[key] = null;
             }
         });
+        const tbody = document.getElementById('chartAssociadoTableBody');
+        if (tbody) tbody.innerHTML = '';
+        const searchInput = document.getElementById('clientTableSearch');
+        if (searchInput) searchInput.value = '';
     },
 
     renderCharts(chartsData, categoryLabel) {
         const catLabel = categoryLabel || 'Categoria';
         this.renderLineChart('chartDate', chartsData.byDate || [], 'Evolução de Volume');
-        this.renderBarChart('chartGroup', chartsData.byGroup || [], 'Volume por Grupo', 'rgba(54, 162, 235, 0.7)', 'group');
+        this.renderBarChart('chartGroup', chartsData.byGroup || [], 'Volume por Grupo', 'rgba(54, 162, 235, 0.7)', 'group', { indexAxis: 'y', wrapperId: 'chartGroupWrap', visibleBars: 4 });
         this.renderHorizontalBarChart('chartCategory', chartsData.byCategory || [], `Top Categorias (${catLabel})`);
         this.renderBarChart('chartBrand', chartsData.byBrand || [], 'Volume por Marca', 'rgba(153, 102, 255, 0.7)', 'brand');
-        this.renderBarChart('chartUF', chartsData.byUF || [], 'Volume por UF', 'rgba(255, 159, 64, 0.7)', 'uf');
-        this.renderBarChart('chartAssociado', chartsData.byAssociado || [], 'Volume por Associado', 'rgba(75, 192, 192, 0.7)', 'associado');
+        this.renderBarChart('chartUF', chartsData.byUF || [], 'Volume por UF', 'rgba(255, 159, 64, 0.7)', 'uf', { indexAxis: 'y', wrapperId: 'chartUFWrap', visibleBars: 4 });
+        this.renderClientChartAndTable(chartsData.byAssociado || []);
     },
 
     renderLineChart(canvasId, data, label) {
@@ -423,16 +427,40 @@ export const Dashboard = {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
+                layout: { padding: { bottom: 24, left: 8, right: 8 } },
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: {
+                        ticks: {
+                            maxTicksLimit: 12,
+                            maxRotation: 45,
+                            minRotation: 45,
+                            font: { size: 10 }
+                        }
+                    },
+                    y: {
+                        ticks: { font: { size: 10 } }
+                    }
+                }
             }
         });
     },
 
-    renderBarChart(canvasId, data, label, color, chartKey) {
+    renderBarChart(canvasId, data, label, color, chartKey, opts = {}) {
         const el = document.getElementById(canvasId);
         if (!el) return;
         const key = chartKey || 'group';
         if (this.charts[key]) this.charts[key].destroy();
+        const horizontal = opts.indexAxis === 'y';
+        const barHeightPx = 28;
+        const visibleBars = opts.visibleBars != null ? opts.visibleBars : 0;
+        const wrapId = opts.wrapperId;
+        if (horizontal && wrapId && visibleBars > 0) {
+            const wrap = document.getElementById(wrapId);
+            const minHeight = 120;
+            const chartHeight = data.length > 0 ? Math.max(minHeight, data.length * barHeightPx + 80) : minHeight;
+            if (wrap) wrap.style.height = `${chartHeight}px`;
+        }
         const ctx = el.getContext('2d');
         this.charts[key] = new Chart(ctx, {
             type: 'bar',
@@ -446,9 +474,20 @@ export const Dashboard = {
                 }]
             },
             options: {
+                indexAxis: horizontal ? 'y' : 'x',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
+                layout: horizontal ? { padding: { left: 4, right: 8 } } : {},
+                plugins: { legend: { display: false } },
+                scales: horizontal ? {
+                    x: { ticks: { font: { size: 10 } } },
+                    y: {
+                        ticks: { font: { size: 10 }, autoSkip: false }
+                    }
+                } : {
+                    x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 0 } },
+                    y: { ticks: { font: { size: 10 } } }
+                }
             }
         });
     },
@@ -475,6 +514,95 @@ export const Dashboard = {
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } }
             }
+        });
+    },
+
+    /** Gráfico horizontal com todas as empresas + scroll; tabela rolável com todos os clientes */
+    renderClientChartAndTable(clientData) {
+        const chartData = clientData.slice();
+        const wrap = document.getElementById('chartAssociadoWrap');
+        const el = document.getElementById('chartAssociado');
+        if (this.charts.associado) this.charts.associado.destroy();
+        const barHeightPx = 28;
+        const minHeight = 280;
+        const chartHeight = chartData.length > 0 ? Math.max(minHeight, chartData.length * barHeightPx + 80) : minHeight;
+        if (wrap) wrap.style.height = `${chartHeight}px`;
+        if (el) {
+            const ctx = el.getContext('2d');
+            this.charts.associado = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.map(d => d.label),
+                    datasets: [{
+                        label: 'Volume por Cliente',
+                        data: chartData.map(d => d.value),
+                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+        this._clientTableData = clientData.slice();
+        this._clientTableSort = { key: 'value', asc: false };
+        this.renderClientTable(clientData);
+        this.bindClientTableSearch();
+        this.bindClientTableSort();
+    },
+
+    formatVolume(val) {
+        if (val == null || isNaN(val)) return 'R$ 0,00';
+        return 'R$ ' + Number(val).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+
+    renderClientTable(data) {
+        const tbody = document.getElementById('chartAssociadoTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        (data || []).forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${Utils.escapeHtml(String(row.label))}</td><td class="num">${this.formatVolume(row.value)}</td>`;
+            tbody.appendChild(tr);
+        });
+    },
+
+    bindClientTableSearch() {
+        const input = document.getElementById('clientTableSearch');
+        const self = this;
+        if (!input) return;
+        input.value = '';
+        input.oninput = function () {
+            const q = (this.value || '').trim().toLowerCase();
+            const data = (self._clientTableData || []).filter(d => !q || String(d.label).toLowerCase().includes(q));
+            self.renderClientTable(data);
+        };
+    },
+
+    bindClientTableSort() {
+        const table = document.getElementById('chartAssociadoTable');
+        const searchInput = document.getElementById('clientTableSearch');
+        const self = this;
+        if (!table) return;
+        table.querySelectorAll('thead th[data-sort]').forEach(th => {
+            th.addEventListener('click', function () {
+                const key = this.getAttribute('data-sort');
+                const asc = self._clientTableSort.key === key ? !self._clientTableSort.asc : key === 'value';
+                self._clientTableSort = { key, asc };
+                const q = (searchInput && searchInput.value || '').trim().toLowerCase();
+                let data = (self._clientTableData || []).slice();
+                if (q) data = data.filter(d => String(d.label).toLowerCase().includes(q));
+                data.sort((a, b) => {
+                    if (key === 'value') return asc ? a.value - b.value : b.value - a.value;
+                    const sa = String(a.label), sb = String(b.label);
+                    return asc ? sa.localeCompare(sb) : sb.localeCompare(sa);
+                });
+                self.renderClientTable(data);
+            });
         });
     },
 

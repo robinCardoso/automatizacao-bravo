@@ -209,16 +209,18 @@ npm run dist
 
 ---
 
-## 🎯 PRÓXIMAS VERSÕES
+## 🎯 PRÓXIMAS VERSÕES E ATUALIZAÇÃO AUTOMÁTICA
 
-Para atualizar o aplicativo:
+O app instalado **pode ser atualizado sem reinstalar**: o usuário clica em "Verificar atualizações" no rodapé (ou recebe a checagem em background) e, quando uma nova versão é baixada, aparece o diálogo "Reiniciar agora" para instalar.
 
-1. Aumente versão em `package.json`:
+### Atualizar a versão no código
+
+1. Aumente a versão em `package.json`:
 ```json
 "version": "1.1.0"
 ```
 
-2. Recompile e gere novo instalável:
+2. Recompile e gere o instalável (e publique no GitHub, veja abaixo):
 ```powershell
 npm run build
 npm run dist
@@ -226,7 +228,31 @@ npm run dist
 
 3. Novo instalador será: `Automatizador Bravo Setup 1.1.0.exe`
 
-**Auto-update:** Considere implementar electron-updater para updates automáticos.
+### Publicar atualizações no GitHub (100% gratuito)
+
+O projeto está configurado para usar **GitHub Releases** como servidor de atualizações. Os usuários que já têm o app instalado receberão a nova versão ao clicar em "Verificar atualizações".
+
+**Passos para publicar uma nova versão:**
+
+1. Crie um repositório no GitHub (ex.: `redeuniaonacional/automatizador-bravo`).
+
+2. Ajuste no `package.json` em `build.publish` o `owner` e `repo` para o seu repositório (se diferente).
+
+3. Crie um **Personal Access Token** no GitHub com permissão `repo` e defina a variável de ambiente antes de publicar:
+   ```powershell
+   $env:GH_TOKEN = "seu_token_aqui"
+   ```
+
+4. Gere o instalável **e** publique no GitHub em um único comando:
+   ```powershell
+   npm run build
+   npx electron-builder --win --x64 --publish always
+   ```
+   Ou adicione um script no `package.json`: `"dist:publish": "npm run build && electron-builder --win --x64 --publish always"` e rode `npm run dist:publish`.
+
+5. O electron-builder criará (ou atualizará) um **Release** com a tag da versão (ex.: `v1.0.1`), fará upload do `Automatizador Bravo Setup X.Y.Z.exe` e do `latest.yml`. O app instalado consulta esse Release para saber se há atualização.
+
+**Importante:** A cada nova versão, incremente `version` no `package.json` e rode o comando de build com `--publish always` (ou use o script `dist:publish`). Os usuários que já instalaram o app verão a atualização ao clicar em "Verificar atualizações" e em "Reiniciar agora".
 
 ---
 

@@ -23,6 +23,8 @@ export type DiffResult = {
 
 export class DiffEngine {
   private policy: SafeSnapshotPolicy;
+  /** Regras globais de filtro (estão na raiz do schemaMaps.json, não dentro de VENDA/PEDIDO) */
+  private globalFilteringRules: any[] = [];
 
   constructor() {
     // Carrega schemas do arquivo data/schemaMaps.json
@@ -33,6 +35,7 @@ export class DiffEngine {
     try {
       if (fs.existsSync(schemaPath)) {
         const rawSchemas = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
+        this.globalFilteringRules = Array.isArray((rawSchemas as any).filteringRules) ? (rawSchemas as any).filteringRules : [];
         this.policy = new SafeSnapshotPolicy(rawSchemas);
       } else {
         automationLogger.error(`[DiffEngine] Arquivo de schema não encontrado: ${schemaPath}`);
@@ -82,7 +85,7 @@ export class DiffEngine {
    * Usado em NEXT e em PREV para evitar falsas "remoções" (comparar só linhas válidas).
    */
   private applyPreprocessing(rows: any[], schema: any, primaryKeys: string[]): any[] {
-    const filteringRules = (schema as any).filteringRules || [];
+    const filteringRules = (schema as any).filteringRules || this.globalFilteringRules || [];
 
     let result = rows;
 
@@ -252,6 +255,24 @@ export class DiffEngine {
       automationLogger.info(`[DiffEngine] Pré-processamento PREV: ${prevLenBeforePre} -> ${prevRows.length} linhas (mesmo critério do NEXT para evitar falsas remoções).`);
     }
 
+    // 3.1 Proteção: novo download vazio com CURRENT existente = não sobrescrever (evita marcar tudo como "removido")
+    if (nextRows.length === 0 && prevRows.length > 0) {
+      automationLogger.error(`[DiffEngine] ABORTADO: arquivo novo está vazio (0 linhas) mas já existe snapshot anterior com ${prevRows.length} linhas. Possível falha no download. CURRENT e DELETED não foram alterados.`);
+      throw new Error(
+        `Download vazio para ${identity.tipo} (${identity.period}_${identity.uf}). O arquivo baixado tem 0 linhas; o snapshot anterior tem ${prevRows.length}. Não foi aplicada nenhuma alteração para evitar remoções incorretas. Verifique o download ou o relatório na origem.`
+      );
+    }
+
+    // 3.2 Proteção: novo arquivo com muito menos linhas que o anterior = possível download incompleto/erro na origem
+    const MIN_NEW_PREV_RATIO = 0.3; // se novo tiver menos de 30% das linhas do anterior, rejeitar
+    if (prevRows.length > 0 && nextRows.length > 0 && nextRows.length < prevRows.length * MIN_NEW_PREV_RATIO) {
+      const ratio = (nextRows.length / prevRows.length * 100).toFixed(0);
+      automationLogger.error(`[DiffEngine] ABORTADO: novo arquivo tem ${nextRows.length} linhas (${ratio}% do anterior: ${prevRows.length}). Possível download incompleto ou falha na origem. CURRENT não foi alterado.`);
+      throw new Error(
+        `Download suspeito para ${identity.tipo} (${identity.period}_${identity.uf}): novo tem ${nextRows.length} linhas vs ${prevRows.length} no anterior (${ratio}%). Para evitar perda de dados, a atualização foi recusada. Verifique o relatório na origem ou execute novamente.`
+      );
+    }
+
     // 4.1 Valida identidade do snapshot anterior e log de períodos
     if (fs.existsSync(files.meta)) {
       try {
@@ -328,6 +349,31 @@ export class DiffEngine {
       const delWb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(delWb, delWs, "Deletados_SSP");
       XLSX.writeFile(delWb, files.deleted);
+    }
+
+    // 7.1 Backup do CURRENT antes de sobrescrever (origem inconstante: permite restauração se o novo estiver errado)
+    const MAX_BACKUPS_PER_IDENTITY = 2;
+    if (fs.existsSync(files.current) && prevRows.length > 0) {
+      const backupDir = path.join(path.dirname(files.current), 'backups');
+      if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+      const baseName = path.basename(files.current, '.xlsx');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const backupPath = path.join(backupDir, `${baseName}_${timestamp}.xlsx`);
+      try {
+        fs.copyFileSync(files.current, backupPath);
+        automationLogger.info(`[DiffEngine] Backup do CURRENT salvo em: ${backupPath}`);
+        const backups = fs.readdirSync(backupDir)
+          .filter(f => f.startsWith(baseName) && f.endsWith('.xlsx'))
+          .map(f => ({ name: f, path: path.join(backupDir, f), mtime: fs.statSync(path.join(backupDir, f)).mtime.getTime() }))
+          .sort((a, b) => b.mtime - a.mtime);
+        while (backups.length > MAX_BACKUPS_PER_IDENTITY) {
+          const toRemove = backups.pop()!;
+          fs.unlinkSync(toRemove.path);
+          automationLogger.debug(`[DiffEngine] Backup antigo removido: ${toRemove.name}`);
+        }
+      } catch (e: any) {
+        automationLogger.warn(`[DiffEngine] Não foi possível criar backup: ${e.message}`);
+      }
     }
 
     // 8. Salva o novo CURRENT (LIMPO e REGENERADO)

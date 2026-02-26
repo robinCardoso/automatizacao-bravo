@@ -382,9 +382,10 @@ export class DashboardService {
                 if (ufVal) {
                     ufMap.set(String(ufVal), (ufMap.get(String(ufVal)) || 0) + val);
                 }
-                const associadoVal = findValue(row, 'Associado');
-                if (associadoVal) {
-                    associadoMap.set(String(associadoVal), (associadoMap.get(String(associadoVal)) || 0) + val);
+                // Volume por Cliente: colunas existentes nos Excel (não existe coluna "Associado")
+                const clienteVal = findValue(row, 'Cliente') || findValue(row, 'Cliente / Nome Fantasia') || findValue(row, 'Nome Fantasia');
+                if (clienteVal) {
+                    associadoMap.set(String(clienteVal), (associadoMap.get(String(clienteVal)) || 0) + val);
                 }
             }
         });

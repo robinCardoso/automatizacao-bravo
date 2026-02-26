@@ -46,6 +46,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   updateCatalogItem: (ref: string, info: any) => ipcRenderer.invoke('update-catalog-item', ref, info),
   batchUpdateCatalog: (items: any[]) => ipcRenderer.invoke('batch-update-catalog', items),
 
+  // Atualização (electron-updater)
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
+
   // Eventos
   onAutomationProgress: (callback: (data: any) => void) =>
     ipcRenderer.on('automation-progress', (_event, data) => callback(data)),
@@ -55,6 +59,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('automation-error', (_event, error) => callback(error)),
   onSiteComplete: (callback: (result: any) => void) =>
     ipcRenderer.on('site-complete', (_event, result) => callback(result)),
+  onUpdateAvailable: (callback: (info: { version: string }) => void) =>
+    ipcRenderer.on('update-available', (_event, info) => callback(info)),
+  onUpdateDownloaded: (callback: (info: { version: string }) => void) =>
+    ipcRenderer.on('update-downloaded', (_event, info) => callback(info)),
+  onUpdateError: (callback: (info: { message: string }) => void) =>
+    ipcRenderer.on('update-error', (_event, info) => callback(info)),
 
   // Remover listeners
   removeAllListeners: (channel: string) => ipcRenderer.removeAllListeners(channel)

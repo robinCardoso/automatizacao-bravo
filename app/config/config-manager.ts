@@ -71,6 +71,16 @@ class SecureCredentialManager {
   }
 }
 
+// Schema de um passo (pós-login) — usado em site e em preset
+const StepSchema = z.object({
+  type: z.enum(['goto', 'click', 'hover', 'fill', 'fillDateRange', 'select', 'waitFor', 'download']),
+  selector: z.union([z.string(), z.array(z.string())]),
+  value: z.string().optional(),
+  timeout: z.number().optional(),
+  retries: z.number().optional(),
+  continueOnError: z.boolean().default(false),
+});
+
 // Schema de validação para configuração de sites
 const SiteConfigSchema = z.object({
   id: z.string(),
@@ -80,14 +90,7 @@ const SiteConfigSchema = z.object({
   usernameField: z.string(),
   passwordField: z.string(),
   loginButton: z.string(),
-  steps: z.array(z.object({
-    type: z.enum(['goto', 'click', 'hover', 'fill', 'fillDateRange', 'select', 'waitFor', 'download']),
-    selector: z.union([z.string(), z.array(z.string())]),
-    value: z.string().optional(),
-    timeout: z.number().optional(),
-    retries: z.number().optional(),
-    continueOnError: z.boolean().default(false),
-  })),
+  steps: z.array(StepSchema).default([]),
   downloadPath: z.string().optional(),
   renamePattern: z.string().optional(),
   reportType: z.string().optional(),
@@ -107,6 +110,9 @@ const PresetSchema = z.object({
   password: z.string().min(1, 'Senha é obrigatória'),
   type: z.enum(['vendas', 'pedidos', 'fiscal', 'outros']).default('outros'),
   destination: z.string().optional(),
+
+  // Passos pós-login compartilhados por todos os sites do preset (quando definido, substitui site.steps)
+  steps: z.array(StepSchema).optional(),
 
   // NOVO: Configurações de Auditoria e Dashboard no nível do Preset
   primaryKeys: z.array(z.string()).optional(),

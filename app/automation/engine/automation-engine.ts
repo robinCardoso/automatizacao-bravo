@@ -258,6 +258,11 @@ export class AutomationEngine {
       throw new Error(`Configuração Inválida: Colunas identificadoras não informadas para auditoria (Site/Preset/Global).`);
     }
 
+    // Passos: usar os do preset quando existirem; senão, os do site
+    const stepsToRun = (currentPreset?.steps?.length)
+      ? currentPreset.steps!
+      : (site.steps || []);
+
     let stepsExecuted = 0;
     const downloads: string[] = [];
 
@@ -266,7 +271,7 @@ export class AutomationEngine {
       const headless = config.headless !== undefined ? config.headless : true;
 
       this.emitProgress({
-        siteId: site.id, siteName: site.name, currentStep: 0, totalSteps: site.steps.length,
+        siteId: site.id, siteName: site.name, currentStep: 0, totalSteps: stepsToRun.length,
         stepType: 'goto', message: `🌐 Abrindo navegador...`, percentage: 0
       });
 
@@ -285,8 +290,8 @@ export class AutomationEngine {
         () => !this.isRunning // Função de cancelamento
       );
 
-      for (let i = 0; i < site.steps.length; i++) {
-        const step = site.steps[i];
+      for (let i = 0; i < stepsToRun.length; i++) {
+        const step = stepsToRun[i];
         if (await loginHandler.checkSessionExpired(page, site)) {
           const reauthResult = await loginHandler.reauthenticate(site, context, headless);
           if (!reauthResult.success) throw new Error(`Sessão expirada e reautenticação falhou`);
@@ -294,9 +299,9 @@ export class AutomationEngine {
         }
 
         this.emitProgress({
-          siteId: site.id, siteName: site.name, currentStep: i + 1, totalSteps: site.steps.length,
+          siteId: site.id, siteName: site.name, currentStep: i + 1, totalSteps: stepsToRun.length,
           stepType: step.type, message: `Executando ${step.type}`,
-          percentage: Math.round(((i + 1) / site.steps.length) * 100)
+          percentage: Math.round(((i + 1) / stepsToRun.length) * 100)
         });
 
         await this.stepExecutor.executeStep(step);

@@ -699,16 +699,50 @@ body {
 
 /* FOOTER */
 .fixed-footer {
-    background: #ffffff;
-    border-top: 1px solid #dce4ec;
-    padding: 0 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 0 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 32px;
-    font-size: 10px;
-    color: #95a5a6;
+    min-height: 48px;
+    font-size: 11px;
+    color: #64748b;
     flex-shrink: 0;
+    gap: 16px;
+}
+.fixed-footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.fixed-footer-center {
+    flex-shrink: 0;
+    font-size: 11px;
+    color: #64748b;
+}
+.fixed-footer-right {
+    flex-shrink: 0;
+}
+.btn-footer {
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    color: #475569;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+.btn-footer:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
 }
 
 /* BOTÕES */
@@ -981,7 +1015,7 @@ body {
 
 /* DASHBOARD – cards próximos aos filtros */
 #view-dashboard .dashboard-cards-body {
-    padding-top: 6px;
+    padding-top: 2px;
 }
 #view-dashboard .dashboard-header-compact .dashboard-filter-pills {
     margin-top: 4px;
@@ -1095,6 +1129,108 @@ body {
     flex: 1;
     position: relative;
     min-height: 0;
+}
+
+/* Volume por Cliente: gráfico (top 30) + tabela rolável para muitos clientes */
+.chart-card-clients {
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+}
+.chart-card-clients .chart-subtitle {
+    margin: 0 0 8px 0;
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+}
+.chart-content-fixed {
+    flex: none;
+    max-height: 260px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.chart-content-group-scroll {
+    flex: none;
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.chart-content-uf-scroll {
+    flex: none;
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+.chart-inner-scroll {
+    width: 100%;
+    min-height: 280px;
+    position: relative;
+}
+.chart-inner-scroll canvas {
+    display: block;
+}
+.client-table-wrap {
+    margin-top: 12px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.client-table-search {
+    width: 100%;
+    max-width: 280px;
+    padding: 6px 10px;
+    font-size: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+.client-table-search:focus {
+    outline: none;
+    border-color: #3498db;
+}
+.client-table-scroll {
+    flex: 1;
+    overflow: auto;
+    max-height: 280px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #fafafa;
+}
+.client-volume-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+.client-volume-table thead {
+    position: sticky;
+    top: 0;
+    background: #f1f5f9;
+    z-index: 1;
+}
+.client-volume-table th {
+    padding: 8px 10px;
+    text-align: left;
+    font-weight: 700;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+    cursor: pointer;
+    user-select: none;
+}
+.client-volume-table th:hover {
+    background: #e2e8f0;
+}
+.client-volume-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #f1f5f9;
+}
+.client-volume-table tbody tr:hover {
+    background: #f8fafc;
+}
+.client-volume-table td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
 .premium-select-small {

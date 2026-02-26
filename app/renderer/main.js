@@ -300,6 +300,35 @@ window.exportLogs = async () => {
     }
 };
 
+// Atualização (electron-updater)
+window.checkForUpdates = async () => {
+    if (!window.electronAPI?.checkForUpdates) return;
+    try {
+        Utils.showNotification('Verificando atualizações...', 'info');
+        const result = await window.electronAPI.checkForUpdates();
+        if (result?.success === false) {
+            Utils.showNotification(result?.message || 'Nenhuma atualização disponível.', result?.message?.includes('só estão disponíveis') ? 'info' : 'warning');
+        } else if (result?.updateInfo) {
+            Utils.showNotification(`Nova versão ${result.updateInfo.version} disponível. Baixando...`, 'info');
+        } else {
+            Utils.showNotification('Você está na versão mais recente.', 'success');
+        }
+    } catch (error) {
+        Utils.showNotification('Erro ao verificar atualização.', 'error');
+    }
+};
+
+window.closeUpdateReadyModal = () => {
+    const el = document.getElementById('updateReadyModal');
+    if (el) el.style.display = 'none';
+};
+
+window.quitAndInstall = () => {
+    if (window.electronAPI?.quitAndInstall) {
+        window.electronAPI.quitAndInstall();
+    }
+};
+
 // Listeners do Electron (MIGRADOS DO ORIGINAL)
 // Estes listeners são cruciais para que a UI responda aos eventos do backend (main process)
 window.electronAPI.onAutomationProgress((data) => {
@@ -334,3 +363,23 @@ window.electronAPI.onSiteComplete((result) => {
         UI.addAuditRow(result);
     }
 });
+
+// Listeners de atualização (electron-updater)
+if (window.electronAPI.onUpdateAvailable) {
+    window.electronAPI.onUpdateAvailable((info) => {
+        Utils.showNotification(`Nova versão ${info.version} disponível. Baixando...`, 'info');
+    });
+}
+if (window.electronAPI.onUpdateDownloaded) {
+    window.electronAPI.onUpdateDownloaded((info) => {
+        const msg = document.getElementById('updateReadyMessage');
+        if (msg) msg.textContent = `A versão ${info.version} foi baixada. Reiniciar o aplicativo para instalar?`;
+        const modal = document.getElementById('updateReadyModal');
+        if (modal) modal.style.display = 'flex';
+    });
+}
+if (window.electronAPI.onUpdateError) {
+    window.electronAPI.onUpdateError((info) => {
+        Utils.showNotification(info?.message || 'Falha ao verificar atualização.', 'error');
+    });
+}

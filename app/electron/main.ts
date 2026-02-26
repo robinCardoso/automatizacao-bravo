@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain, shell, Menu, Tray, nativeImage } from 'electron';
+import { autoUpdater } from 'electron-updater';
 import * as path from 'path';
 import * as fs from 'fs';
 import { configManager } from '../config/config-manager';
@@ -342,6 +343,26 @@ function registerIpcHandlers(): void {
       return { success: false, error: error.message };
     }
   });
+
+  // ===== ATUALIZAÇÃO (electron-updater) =====
+  ipcMain.handle('check-for-updates', async () => {
+    if (!app.isPackaged) {
+      return { success: false, message: 'Atualizações só estão disponíveis na versão instalada.' };
+    }
+    try {
+      const result = await autoUpdater.checkForUpdates();
+      return { success: true, updateInfo: result?.updateInfo ?? null };
+    } catch (err: any) {
+      logger.warn(`[AutoUpdater] checkForUpdates: ${err?.message ?? err}`);
+      return { success: false, message: err?.message ?? 'Falha ao verificar atualização.' };
+    }
+  });
+
+  ipcMain.handle('quit-and-install', () => {
+    if (app.isPackaged) {
+      autoUpdater.quitAndInstall(false, true);
+    }
+  });
 }
 
 function createWindow(): void {
@@ -413,6 +434,38 @@ function createWindow(): void {
   });
 }
 
+// ===== ATUALIZAÇÃO AUTOMÁTICA (electron-updater) =====
+function setupAutoUpdater(): void {
+  if (!app.isPackaged) {
+    return;
+  }
+  autoUpdater.logger = logger;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('update-available', (info: { version: string }) => {
+    logger.info(`[AutoUpdater] Nova versão disponível: ${info.version}`);
+    mainWindow?.webContents?.send('update-available', { version: info.version });
+  });
+
+  autoUpdater.on('update-downloaded', (info: { version: string }) => {
+    logger.info(`[AutoUpdater] Atualização baixada: ${info.version}`);
+    mainWindow?.webContents?.send('update-downloaded', { version: info.version });
+  });
+
+  autoUpdater.on('error', (err: Error) => {
+    logger.warn(`[AutoUpdater] Erro: ${err.message}`);
+    mainWindow?.webContents?.send('update-error', { message: err.message });
+  });
+
+  // Checagem em background após 8 segundos (opcional)
+  setTimeout(() => {
+    if (app.isPackaged && mainWindow) {
+      autoUpdater.checkForUpdates().catch(() => {});
+    }
+  }, 8000);
+}
+
 // Este método será chamado quando o Electron terminar a inicialização
 app.whenReady().then(() => {
   // Garante que as pastas de dados existam antes de qualquer serviço carregar
@@ -432,6 +485,8 @@ app.whenReady().then(() => {
 
   // Inicia o agendador automático
   schedulerService.start();
+
+  setupAutoUpdater();
 
   app.on('activate', () => {
     // No macOS é comum recriar uma janela quando o ícone do dock é clicado
