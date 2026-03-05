@@ -79,6 +79,7 @@ const StepSchema = z.object({
   timeout: z.number().optional(),
   retries: z.number().optional(),
   continueOnError: z.boolean().default(false),
+  skipStep: z.boolean().default(false),
 });
 
 // Schema de validação para configuração de sites

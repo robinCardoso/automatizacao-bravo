@@ -121,19 +121,22 @@ export const Sites = {
                 if (!firstWithSteps) return;
                 presetStepsListEl.innerHTML = '';
                 (firstWithSteps.steps || []).forEach(step => {
-                    const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError);
+                    const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError, step.skipStep);
                     presetStepsListEl.appendChild(row);
                 });
+                this.setupStepListDragDropIfNeeded(presetStepsListEl);
                 Utils.showNotification('Passos do primeiro site carregados. Clique em "Salvar passos do preset" para aplicar a todos.', 'info');
             };
         }
         (preset.steps || []).forEach(step => {
-            const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError);
+            const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError, step.skipStep);
             presetStepsListEl.appendChild(row);
         });
+        this.setupStepListDragDropIfNeeded(presetStepsListEl);
         presetStepsSection.querySelector('#btnAddPresetStep').onclick = () => {
             const row = this.createStepRowElement();
             presetStepsListEl.appendChild(row);
+            this.setupStepListDragDropIfNeeded(presetStepsListEl);
         };
         presetStepsSection.querySelector('#btnSavePresetSteps').onclick = () => this.savePresetSteps();
 
@@ -275,11 +278,14 @@ export const Sites = {
         document.getElementById('sUF').value = site.uf || 'SC';
         document.getElementById('sDest').value = site.downloadPath || '';
         const list = document.getElementById('stepsList');
-        list.innerHTML = '';
-        (site.steps || []).forEach(step => {
-            const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError);
-            list.appendChild(row);
-        });
+        if (list) {
+            list.innerHTML = '';
+            (site.steps || []).forEach(step => {
+                const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError, step.skipStep);
+                list.appendChild(row);
+            });
+            this.setupStepListDragDropIfNeeded(list);
+        }
         if (SelectorUtils && SelectorUtils.setupAutoConvert) {
             SelectorUtils.setupAutoConvert(document.getElementById('sUserField'));
             SelectorUtils.setupAutoConvert(document.getElementById('sPassField'));
@@ -297,16 +303,50 @@ export const Sites = {
 
     addStepRow(type = 'goto', selector = '', value = '', continueOnError = false) {
         const list = document.getElementById('stepsList');
+        if (!list) return;
         const row = this.createStepRowElement(type, selector, value, continueOnError);
         list.appendChild(row);
+        this.setupStepListDragDropIfNeeded(list);
     },
 
     insertStepAbove(currentRow) {
         const newRow = this.createStepRowElement();
-        document.getElementById('stepsList').insertBefore(newRow, currentRow);
+        const list = currentRow.parentElement;
+        if (list) list.insertBefore(newRow, currentRow);
     },
 
-    createStepRowElement(type = 'goto', selector = '', value = '', continueOnError = false) {
+    moveStepUp(row) {
+        const list = row.parentElement;
+        if (!list) return;
+        const prev = row.previousElementSibling;
+        if (prev) list.insertBefore(row, prev);
+    },
+
+    moveStepDown(row) {
+        const list = row.parentElement;
+        if (!list) return;
+        const next = row.nextElementSibling;
+        if (next) list.insertBefore(next, row);
+    },
+
+    setupStepListDragDropIfNeeded(listEl) {
+        if (!listEl || listEl.dataset.stepDragSetup === '1') return;
+        listEl.dataset.stepDragSetup = '1';
+        listEl.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        });
+        listEl.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const row = this._draggedStepRow;
+            if (!row || !row.parentElement) return;
+            const target = e.target.closest('.step-row');
+            if (target && target !== row) row.parentElement.insertBefore(row, target);
+            this._draggedStepRow = null;
+        });
+    },
+
+    createStepRowElement(type = 'goto', selector = '', value = '', continueOnError = false, skipStep = false) {
         const row = document.createElement('div');
         row.className = 'step-row';
         row.style.cssText = 'display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; padding: 8px; background: #fcfdfe; border-radius: 8px; border: 1px solid #f1f4f6;';
@@ -319,7 +359,9 @@ export const Sites = {
 
         row.innerHTML = `
             <div style="display: flex; gap: 5px; align-items: center;">
-                <button class="btn btn-up" style="padding: 2px 5px; font-size: 10px; min-width: 25px; background: #ecf0f1; border-color: #bdc3c7;" title="Inserir passo acima">⬆️</button>
+                <span class="step-drag-handle" draggable="true" style="cursor: grab; padding: 2px 4px; font-size: 12px; color: #95a5a6; user-select: none;" title="Arrastar para reordenar">⋮⋮</span>
+                <button class="btn btn-up" style="padding: 2px 5px; font-size: 10px; min-width: 25px; background: #ecf0f1; border-color: #bdc3c7;" title="Subir">⬆️</button>
+                <button class="btn btn-down" style="padding: 2px 5px; font-size: 10px; min-width: 25px; background: #ecf0f1; border-color: #bdc3c7;" title="Descer">⬇️</button>
                 <select class="step-type" style="width: 100px; padding: 3px; font-size: 11px; border-radius: 4px; border: 1px solid #dce4ec;">
                     <option value="goto" ${type === 'goto' ? 'selected' : ''}>Ir para</option>
                     <option value="click" ${type === 'click' ? 'selected' : ''}>Clicar</option>
@@ -337,6 +379,7 @@ export const Sites = {
                 </div>
                 <button class="btn btn-remove-step btn-danger" style="padding: 2px 5px; font-size: 10px; min-width: 25px;">×</button>
                 <input type="checkbox" class="step-optional" ${continueOnError ? 'checked' : ''} title="Continuar mesmo se falhar" style="width: 20px; height: 20px; cursor: pointer; accent-color: #3498db;">
+                <input type="checkbox" class="step-skip" ${skipStep ? 'checked' : ''} title="Ignorar este passo (não executar)" style="width: 20px; height: 20px; cursor: pointer; accent-color: #95a5a6;">
             </div>
              <div class="secondary-row" style="display: ${type === 'fillDateRange' ? 'flex' : 'none'}; gap: 5px; align-items: center; margin-top: 4px; padding-left: 105px;">
                 <input type="text" class="step-selector-2" placeholder="Seletor Fim (Opcional)..." value="${escapeHtml(s2)}" style="flex: 1; padding: 3px; font-size: 11px; border-radius: 4px; border: 1px solid #dce4ec;">
@@ -349,8 +392,23 @@ export const Sites = {
         row.querySelector('.step-type').onchange = (e) => {
             row.querySelector('.secondary-row').style.display = e.target.value === 'fillDateRange' ? 'flex' : 'none';
         };
-        row.querySelector('.btn-up').onclick = () => this.insertStepAbove(row);
+        row.querySelector('.btn-up').onclick = () => this.moveStepUp(row);
+        row.querySelector('.btn-down').onclick = () => this.moveStepDown(row);
         row.querySelector('.btn-remove-step').onclick = () => row.remove();
+
+        const dragHandle = row.querySelector('.step-drag-handle');
+        if (dragHandle) {
+            dragHandle.addEventListener('dragstart', (e) => {
+                this._draggedStepRow = row;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', 'step');
+                row.style.opacity = '0.5';
+            });
+            dragHandle.addEventListener('dragend', () => {
+                this._draggedStepRow = null;
+                row.style.opacity = '';
+            });
+        }
 
         const valueInput = row.querySelector('.step-value');
         const datePresetBtn = row.querySelector('.btn-date-presets');
@@ -371,48 +429,180 @@ export const Sites = {
     },
 
     /**
-     * Abre/fecha menu de tokens de período (ex.: [TRIM_ATUAL]) para o passo "Preencher Período".
+     * Abre/fecha menu de tokens de período para o passo "Preencher Período".
+     * Inclui: tokens relativos + picker de período histórico (mês/ano ou trimestre/ano).
      */
     toggleDatePresetMenu(anchor, valueInput) {
         const existing = document.getElementById('date-preset-menu');
-        if (existing) {
-            existing.remove();
-            return;
-        }
-        const presets = [
-            { label: 'Trimestre atual (automático)', value: '[TRIM_ATUAL]' },
-            { label: 'Mês atual', value: '[MES_ATUAL]' }
-        ];
+        if (existing) { existing.remove(); return; }
+
         const menu = document.createElement('div');
         menu.id = 'date-preset-menu';
-        menu.style.cssText = 'position: fixed; z-index: 10000; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 6px 0; min-width: 220px;';
+        menu.style.cssText = `
+            position: fixed; z-index: 10000; background: #fff;
+            border: 1px solid #e2e8f0; border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15); padding: 10px;
+            min-width: 300px; font-family: inherit;
+        `;
         const rect = anchor.getBoundingClientRect();
-        menu.style.left = `${rect.left}px`;
-        menu.style.top = `${rect.bottom + 4}px`;
+        menu.style.left = `${Math.min(rect.left, window.innerWidth - 320)}px`;
+        menu.style.top = `${rect.bottom + 6}px`;
 
         const close = () => {
             const m = document.getElementById('date-preset-menu');
             if (m) m.remove();
             document.removeEventListener('click', close);
         };
-        presets.forEach(p => {
-            const item = document.createElement('button');
-            item.type = 'button';
-            item.textContent = p.label;
-            item.style.cssText = 'display: block; width: 100%; text-align: left; padding: 8px 12px; border: none; background: none; font-size: 12px; cursor: pointer; color: #334155;';
-            item.onmouseenter = () => { item.style.background = '#f1f5f9'; };
-            item.onmouseleave = () => { item.style.background = 'none'; };
-            item.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                valueInput.value = p.value;
-                valueInput.dispatchEvent(new Event('input', { bubbles: true }));
-                close();
-            };
-            menu.appendChild(item);
+
+        const setVal = (v) => {
+            valueInput.value = v;
+            valueInput.dispatchEvent(new Event('input', { bubbles: true }));
+            close();
+        };
+
+        // --- Seção 1: Tokens relativos (dinâmicos) ---
+        const relDiv = document.createElement('div');
+        relDiv.innerHTML = `<div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:5px;padding:2px 4px;">⏰ Relativo (automático)</div>`;
+        const relTokens = [
+            { label: '📅 Mês Atual', value: '[MES_ATUAL]' },
+            { label: '📅 Mês Anterior', value: '[MES_ANTERIOR]' },
+            { label: '📊 Trimestre Atual', value: '[TRIM_ATUAL]' },
+            { label: '📊 Trimestre Anterior', value: '[TRIM_ANTERIOR]' },
+            { label: '📆 Ano Atual', value: '[ANO_ATUAL]' },
+        ];
+        relTokens.forEach(t => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = t.label;
+            btn.style.cssText = 'display:block;width:100%;text-align:left;padding:6px 10px;border:none;background:none;font-size:12px;cursor:pointer;color:#334155;border-radius:5px;';
+            btn.onmouseenter = () => btn.style.background = '#f1f5f9';
+            btn.onmouseleave = () => btn.style.background = 'none';
+            btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); setVal(t.value); };
+            relDiv.appendChild(btn);
+        });
+        menu.appendChild(relDiv);
+
+        // Separador
+        const sep1 = document.createElement('hr');
+        sep1.style.cssText = 'border:none;border-top:1px solid #e2e8f0;margin:6px 0;';
+        menu.appendChild(sep1);
+
+        // --- Seção 2: Período Histórico por Mês ---
+        const histDiv = document.createElement('div');
+        const currentYear = new Date().getFullYear();
+        const years = [];
+        for (let y = currentYear; y >= 2022; y--) years.push(y);
+
+        const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
+        histDiv.innerHTML = `<div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:6px;padding:2px 4px;">📁 Período Específico → [PERIODO:YYYY-MM]</div>`;
+
+        const pickerRow = document.createElement('div');
+        pickerRow.style.cssText = 'display:flex;gap:6px;align-items:center;padding:4px;';
+
+        const monthSel = document.createElement('select');
+        monthSel.style.cssText = 'flex:1;padding:5px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;';
+        monthNames.forEach((name, idx) => {
+            const opt = document.createElement('option');
+            const mm = String(idx + 1).padStart(2, '0');
+            opt.value = mm;
+            opt.textContent = name;
+            if (idx + 1 === new Date().getMonth() + 1) opt.selected = true;
+            monthSel.appendChild(opt);
         });
 
+        const yearSel = document.createElement('select');
+        yearSel.style.cssText = 'width:80px;padding:5px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;';
+        years.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.textContent = y;
+            if (y === currentYear) opt.selected = true;
+            yearSel.appendChild(opt);
+        });
+
+        const applyBtn = document.createElement('button');
+        applyBtn.type = 'button';
+        applyBtn.textContent = '✓ Usar';
+        applyBtn.style.cssText = 'padding:5px 10px;background:#3b82f6;color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;';
+        applyBtn.onclick = (e) => {
+            e.preventDefault(); e.stopPropagation();
+            setVal(`[PERIODO:${yearSel.value}-${monthSel.value}]`);
+        };
+
+        pickerRow.appendChild(monthSel);
+        pickerRow.appendChild(yearSel);
+        pickerRow.appendChild(applyBtn);
+        histDiv.appendChild(pickerRow);
+
+        // Preview do token
+        const preview = document.createElement('div');
+        preview.style.cssText = 'font-size:10px;color:#3b82f6;padding:3px 8px;background:#eff6ff;border-radius:4px;margin:4px 4px 2px;font-family:monospace;';
+        const updatePreview = () => {
+            const mm = monthSel.value;
+            const yy = yearSel.value;
+            const mIdx = parseInt(mm, 10) - 1;
+            const lastDay = new Date(parseInt(yy), mIdx + 1, 0).getDate();
+            const mName = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'][mIdx];
+            preview.textContent = `[PERIODO:${yy}-${mm}] → 01/${mm}/${yy} a ${String(lastDay).padStart(2, '0')}/${mm}/${yy} · Arquivo: ${mName}${yy}`;
+        };
+        monthSel.onchange = updatePreview;
+        yearSel.onchange = updatePreview;
+        updatePreview();
+        histDiv.appendChild(preview);
+        menu.appendChild(histDiv);
+
+        // Separador
+        const sep2 = document.createElement('hr');
+        sep2.style.cssText = 'border:none;border-top:1px solid #e2e8f0;margin:6px 0;';
+        menu.appendChild(sep2);
+
+        // --- Seção 3: Trimestre Histórico ---
+        const triDiv = document.createElement('div');
+        triDiv.innerHTML = `<div style="font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:6px;padding:2px 4px;">📊 Trimestre Específico → [PERIODO:YYYY-QN]</div>`;
+
+        const triPickerRow = document.createElement('div');
+        triPickerRow.style.cssText = 'display:flex;gap:6px;align-items:center;padding:4px;';
+
+        const triSel = document.createElement('select');
+        triSel.style.cssText = 'flex:1;padding:5px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;';
+        [['Q1', 'Jan–Mar'], ['Q2', 'Abr–Jun'], ['Q3', 'Jul–Set'], ['Q4', 'Out–Dez']].forEach(([qv, ql]) => {
+            const opt = document.createElement('option');
+            opt.value = qv; opt.textContent = `${qv} (${ql})`;
+            triSel.appendChild(opt);
+        });
+
+        const triYearSel = document.createElement('select');
+        triYearSel.style.cssText = 'width:80px;padding:5px;border:1px solid #cbd5e1;border-radius:6px;font-size:12px;';
+        years.forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = y; opt.textContent = y;
+            if (y === currentYear) opt.selected = true;
+            triYearSel.appendChild(opt);
+        });
+
+        const triApplyBtn = document.createElement('button');
+        triApplyBtn.type = 'button';
+        triApplyBtn.textContent = '✓ Usar';
+        triApplyBtn.style.cssText = 'padding:5px 10px;background:#8b5cf6;color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;';
+        triApplyBtn.onclick = (e) => {
+            e.preventDefault(); e.stopPropagation();
+            setVal(`[PERIODO:${triYearSel.value}-${triSel.value}]`);
+        };
+
+        triPickerRow.appendChild(triSel);
+        triPickerRow.appendChild(triYearSel);
+        triPickerRow.appendChild(triApplyBtn);
+        triDiv.appendChild(triPickerRow);
+        menu.appendChild(triDiv);
+
         document.body.appendChild(menu);
+
+        // Impede que cliques DENTRO do menu se propaguem ao document
+        // (caso contrário os <select> fecham o menu ao abrir)
+        menu.addEventListener('click', (e) => e.stopPropagation());
+        menu.addEventListener('mousedown', (e) => e.stopPropagation());
+
         setTimeout(() => document.addEventListener('click', close), 0);
     },
 
@@ -442,7 +632,8 @@ export const Sites = {
                 type,
                 selector,
                 value: value || undefined,
-                continueOnError: row.querySelector('.step-optional').checked
+                continueOnError: row.querySelector('.step-optional').checked,
+                skipStep: row.querySelector('.step-skip')?.checked || false
             };
         });
 
@@ -510,7 +701,8 @@ export const Sites = {
                 type,
                 selector,
                 value: value || undefined,
-                continueOnError: row.querySelector('.step-optional')?.checked || false
+                continueOnError: row.querySelector('.step-optional')?.checked || false,
+                skipStep: row.querySelector('.step-skip')?.checked || false
             };
         });
         try {
@@ -546,12 +738,15 @@ export const Sites = {
             document.getElementById('sDest').value = site.downloadPath || '';
 
             const list = document.getElementById('stepsList');
-            list.innerHTML = '';
-            if (site.steps) {
-                site.steps.forEach(step => {
-                    const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError);
-                    list.appendChild(row);
-                });
+            if (list) {
+                list.innerHTML = '';
+                if (site.steps) {
+                    site.steps.forEach(step => {
+                        const row = this.createStepRowElement(step.type, step.selector, step.value, step.continueOnError, step.skipStep);
+                        list.appendChild(row);
+                    });
+                }
+                this.setupStepListDragDropIfNeeded(list);
             }
         }
     },

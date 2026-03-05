@@ -240,7 +240,24 @@ export class DashboardService {
 
         const finalCategoryField = options.categoryField || mapping.category;
 
-        data.forEach(row => {
+        // [FILTRO TIPO OPERAÇÃO] Se for VENDA, filtra apenas registros com 'Tipo Operação' = 'Venda'
+        const tipoOperacaoField = 'Tipo Operação';
+        const filteredData = type === 'VENDA'
+            ? data.filter(row => {
+                const tipoOp = findValue(row, tipoOperacaoField);
+                // Se a coluna não existir ou estiver vazia, inclui o registro (compatibilidade retroativa)
+                if (tipoOp === undefined || tipoOp === null || String(tipoOp).trim() === '') return true;
+                // Inclui apenas se for 'Venda' (case-insensitive)
+                return String(tipoOp).trim().toLowerCase() === 'venda';
+            })
+            : data;
+
+        // Log para debug
+        if (type === 'VENDA' && filteredData.length !== data.length) {
+            automationLogger.info(`[DashboardService] Filtro 'Tipo Operação': ${data.length} registros → ${filteredData.length} registros (Venda)`);
+        }
+
+        filteredData.forEach(row => {
             // 1. Extração de Metadados Globais (para preencher os filtros da UI)
             const rawDate = findValue(row, mapping.date);
             let dateObj: Date | null = null;

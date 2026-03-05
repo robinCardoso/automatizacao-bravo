@@ -21,33 +21,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\SC-Vendas",
@@ -66,33 +72,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\RS-Vendas",
@@ -111,33 +123,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\PR-Vendas",
@@ -156,33 +174,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\SP-Vendas",
@@ -201,33 +225,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[TRIM_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\MG-Vendas",
@@ -246,33 +276,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\RJ-Vendas",
@@ -291,33 +327,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\MT-Vendas",
@@ -336,33 +378,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\GO-Vendas",
@@ -381,33 +429,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\ES-Vendas",
@@ -426,33 +480,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\PE-Vendas",
@@ -471,33 +531,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\RN-Vendas",
@@ -516,33 +582,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\RO-Vendas",
@@ -561,33 +633,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\BA-Vendas",
@@ -606,33 +684,39 @@
             {
               "type": "hover",
               "selector": "#menu__ferramentas",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "hover",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "#dataIni,#dataFim",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "input.vermelho",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Vendas\\MA-Vendas",
@@ -648,28 +732,47 @@
         {
           "type": "hover",
           "selector": "#menu__ferramentas",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         },
         {
           "type": "hover",
           "selector": "#menu__ferramentas__exportar",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         },
         {
           "type": "click",
           "selector": "#menu__ferramentas__exportar__item_venda_excel",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
+        },
+        {
+          "type": "fill",
+          "selector": "#dataIni",
+          "value": "[PERIODO:2026-02]",
+          "continueOnError": false,
+          "skipStep": false
+        },
+        {
+          "type": "fill",
+          "selector": "#dataFim",
+          "value": "[PERIODO:2026-02]",
+          "continueOnError": false,
+          "skipStep": false
         },
         {
           "type": "fillDateRange",
           "selector": "#dataIni,#dataFim",
           "value": "[MES_ATUAL]",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": true
         },
         {
           "type": "download",
           "selector": "input.vermelho",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         }
       ],
       "primaryKeys": [
@@ -686,7 +789,7 @@
         "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-01-28T15:56:23.142Z",
-      "lastUsedAt": "2026-02-26T17:52:49.521Z",
+      "lastUsedAt": "2026-03-05T14:01:23.047Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -730,39 +833,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\RS-Pedidos",
@@ -781,39 +891,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\PR-Pedidos",
@@ -832,39 +949,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\SP-Pedidos",
@@ -883,39 +1007,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\MG-Pedidos",
@@ -934,39 +1065,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\MT-Pedidos",
@@ -985,39 +1123,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\GO-Pedidos",
@@ -1036,39 +1181,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\PE-Pedidos",
@@ -1087,39 +1239,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\RN-Pedidos",
@@ -1138,39 +1297,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\RO-Pedidos",
@@ -1189,39 +1355,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\ES-Pedidos",
@@ -1240,39 +1413,46 @@
             {
               "type": "hover",
               "selector": "#menu__monitores",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#menu__monitores__pedidos",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "#abaTabs a:has-text(\"Itens\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "fillDateRange",
               "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
               "value": "[MES_ATUAL]",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "select",
               "selector": "[id=\"arrFilter[excluido_estornado]\"]",
               "value": "nao",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "click",
               "selector": "input.bgOrange",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             },
             {
               "type": "download",
               "selector": "a:has-text(\"Exportar Excel\")",
-              "continueOnError": false
+              "continueOnError": false,
+              "skipStep": false
             }
           ],
           "downloadPath": "C:\\Relatorios\\Pedidos\\RJ-Pedidos",
@@ -1301,39 +1481,60 @@
         {
           "type": "hover",
           "selector": "#menu__monitores",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         },
         {
           "type": "click",
           "selector": "#menu__monitores__pedidos",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         },
         {
           "type": "click",
           "selector": "#abaTabs a:has-text(\"Itens\")",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
+        },
+        {
+          "type": "fill",
+          "selector": "[id=\"arrFilter[doc_data_proc_ini]\"]",
+          "value": "[PERIODO:2026-01]",
+          "continueOnError": false,
+          "skipStep": true
+        },
+        {
+          "type": "fill",
+          "selector": "[id=\"arrFilter[doc_data_proc_fim]\"]",
+          "value": "[PERIODO:2026-01]",
+          "continueOnError": false,
+          "skipStep": true
         },
         {
           "type": "fillDateRange",
           "selector": "[id=\"arrFilter[doc_data_proc_ini]\"],[id=\"arrFilter[doc_data_proc_fim]\"]",
           "value": "[MES_ATUAL]",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         },
         {
           "type": "select",
           "selector": "[id=\"arrFilter[excluido_estornado]\"]",
           "value": "nao",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         },
         {
           "type": "click",
           "selector": "input.bgOrange",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         },
         {
           "type": "download",
           "selector": "a:has-text(\"Exportar Excel\")",
-          "continueOnError": false
+          "continueOnError": false,
+          "skipStep": false
         }
       ],
       "primaryKeys": [
@@ -1349,7 +1550,7 @@
         "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-02-02T12:34:27.670Z",
-      "lastUsedAt": "2026-02-26T18:57:22.435Z",
+      "lastUsedAt": "2026-03-05T15:46:39.278Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -1371,8 +1572,8 @@
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,
-      "user": "ss:7631307fde664e594d221611198c855442c45011025c70c07c9da57d7d7dab2bff3c06b0f253e213ecf4142e155a791ed30be15a86f926217d6c43a9f54fea",
-      "pass": "ss:7631305537caef64380872e6c886edde3660b7071c39afa35345bb890b6d857beb34a90b5ba2f66dd833241fe814a73929c2",
+      "user": "ss:76313035938a6b0ddcca3b023c662d2de9431546a092a38059f55697afad1b37dbaddbe652898ab9d6d6c259a5e5810faef579028521f9b7925d031a1bbe58",
+      "pass": "ss:763130875d93d949b56e20d3ed5e5036240adccd2c0d65fb9f9b88bd4a95658bf275ea744fc4ebc4563af20f38d27c709d56",
       "authType": "login",
       "clientId": "",
       "clientSecret": "",

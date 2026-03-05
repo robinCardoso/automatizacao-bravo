@@ -11,6 +11,7 @@ import { SnapshotMeta } from '../../policy/snapshot/SnapshotMeta';
 import { validateSnapshotIdentity } from '../../policy/snapshot/SnapshotGate';
 import { automationLogger } from '../../config/logger';
 import { ExcelUtils } from '../utils/ExcelUtils';
+import { AppPaths } from '../utils/AppPaths';
 
 
 export type DiffResult = {
@@ -102,6 +103,8 @@ export class DiffEngine {
             if (operator === 'equals' && rowValues.some(v => v === value)) return false;
           } else {
             const actualKey = this.getActualKey(row, field);
+            const hasField = Object.keys(row).some(k => k.toLowerCase().trim() === (field || '').toLowerCase().trim());
+            if (!hasField) continue;
             const val = row[actualKey];
             const rowVal = val !== undefined && val !== null ? String(val).toLowerCase().trim() : '';
 
@@ -193,6 +196,46 @@ export class DiffEngine {
   }
 
   /**
+   * Converte identity.period (ex: FEV2026, 1_TRIMESTRE_2026) em intervalo de datas YYYY-MM-DD.
+   * Usado para filtrar "removidas": só linhas com data dentro do período contam como removidas.
+   */
+  private periodToDateRange(period: string): { start: string; end: string } | null {
+    if (!period || typeof period !== 'string') return null;
+    const p = period.trim().toUpperCase();
+    const monthNames: Record<string, number> = { JAN: 0, FEV: 1, MAR: 2, ABR: 3, MAI: 4, JUN: 5, JUL: 6, AGO: 7, SET: 8, OUT: 9, NOV: 10, DEZ: 11 };
+    const monthMatch = p.match(/^(JAN|FEV|MAR|ABR|MAI|JUN|JUL|AGO|SET|OUT|NOV|DEZ)(\d{4})$/);
+    if (monthMatch) {
+      const month = monthNames[monthMatch[1]];
+      const year = parseInt(monthMatch[2], 10);
+      if (isNaN(year)) return null;
+      const start = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const end = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      return { start, end };
+    }
+    const triMatch = p.match(/^(\d)_TRIMESTRE_(\d{4})$/);
+    if (triMatch) {
+      const tri = parseInt(triMatch[1], 10);
+      const year = parseInt(triMatch[2], 10);
+      if (tri < 1 || tri > 4 || isNaN(year)) return null;
+      const startMonth = (tri - 1) * 3;
+      const endMonthIndex = startMonth + 2;
+      const start = `${year}-${String(startMonth + 1).padStart(2, '0')}-01`;
+      const lastDay = new Date(year, endMonthIndex + 1, 0).getDate();
+      const end = `${year}-${String(endMonthIndex + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      return { start, end };
+    }
+    const explicitMatch = p.match(/^(\d{1,2})_(\d{1,2})_(\d{4})_A_(\d{1,2})_(\d{1,2})_(\d{4})$/);
+    if (explicitMatch) {
+      const [, d1, m1, y1, d2, m2, y2] = explicitMatch;
+      const start = `${y1}-${String(parseInt(m1, 10)).padStart(2, '0')}-${String(parseInt(d1, 10)).padStart(2, '0')}`;
+      const end = `${y2}-${String(parseInt(m2, 10)).padStart(2, '0')}-${String(parseInt(d2, 10)).padStart(2, '0')}`;
+      return { start, end };
+    }
+    return null;
+  }
+
+  /**
    * Executa a comparação entre o novo download e o snapshot anterior
    * @param siteId Identificador do site
    * @param identity Identidade SSP
@@ -255,6 +298,8 @@ export class DiffEngine {
       automationLogger.info(`[DiffEngine] Pré-processamento PREV: ${prevLenBeforePre} -> ${prevRows.length} linhas (mesmo critério do NEXT para evitar falsas remoções).`);
     }
 
+    automationLogger.info(`[DiffEngine] PREV após pré-processamento: ${prevRows.length} linhas; NEXT: ${nextRows.length} linhas.`);
+
     // 3.1 Proteção: novo download vazio com CURRENT existente = não sobrescrever (evita marcar tudo como "removido")
     if (nextRows.length === 0 && prevRows.length > 0) {
       automationLogger.error(`[DiffEngine] ABORTADO: arquivo novo está vazio (0 linhas) mas já existe snapshot anterior com ${prevRows.length} linhas. Possível falha no download. CURRENT e DELETED não foram alterados.`);
@@ -297,14 +342,14 @@ export class DiffEngine {
         }
         // Escapa caracteres especiais que poderiam interferir na assinatura
         // e adiciona delimitadores para garantir unicidade
-        // Também normaliza datas para evitar problemas com diferentes formatos
         let normalizedValue = String(value || '').trim();
-        
-        // Normaliza datas para evitar inconsistências (ex: 05/02/2026 vs 5/2/2026)
         if (k.toLowerCase().includes('data') || k.toLowerCase().includes('dt')) {
           normalizedValue = this.normalizeDate(normalizedValue);
         }
-        
+        const num = Number(normalizedValue);
+        if (normalizedValue !== '' && !isNaN(num)) {
+          normalizedValue = String(num);
+        }
         return `|${normalizedValue}|`;
       }).join('::');
     };
@@ -328,7 +373,65 @@ export class DiffEngine {
       };
     });
 
+    // Diagnóstico: amostra de assinaturas removidas (até 5) e uma linha de exemplo por uma
+    const SAMPLE_REMOVED = 5;
+    if (removedRowsWithContext.length > 0) {
+      automationLogger.info(`[DiffEngine] Total de assinaturas em PREV não presentes em NEXT (removidas): ${removedRowsWithContext.length}.`);
+      removedRowsWithContext.slice(0, SAMPLE_REMOVED).forEach((row, i) => {
+        automationLogger.info(`[DiffEngine] Amostra removida ${i + 1}/${Math.min(SAMPLE_REMOVED, removedRowsWithContext.length)} assinatura: ${row.ssp_signature}`);
+        const pkSample = primaryKeys.map(k => {
+          const actualKey = this.getActualKey(row, k);
+          return `${k}=${row[actualKey] ?? '(vazio)'}`;
+        }).join(', ');
+        automationLogger.info(`[DiffEngine] Amostra removida ${i + 1} PK: ${pkSample}`);
+      });
+    }
+
+    // Fase 5 (opcional): arquivo de debug com amostra de removidas (DEBUG_DIFF=1 ou true)
+    const debugDiff = process.env.DEBUG_DIFF === '1' || process.env.DEBUG_DIFF === 'true';
+    if (debugDiff && removedRowsWithContext.length > 0) {
+      const MAX_DEBUG_REMOVED = 50;
+      const safe = (s: string) => (s || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+      const debugFileName = `diff_removed_${safe(identity.tipo)}_${safe(identity.period)}_${safe(identity.uf)}.json`;
+      const logsDir = AppPaths.getLogsPath();
+      try {
+        if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir, { recursive: true });
+        const debugPath = path.join(logsDir, debugFileName);
+        const sample = removedRowsWithContext.slice(0, MAX_DEBUG_REMOVED).map(row => ({
+          ssp_signature: row.ssp_signature,
+          pk: primaryKeys.reduce((acc, k) => {
+            const actualKey = this.getActualKey(row, k);
+            acc[k] = row[actualKey] ?? null;
+            return acc;
+          }, {} as Record<string, unknown>),
+          row: { ...row }
+        }));
+        fs.writeFileSync(debugPath, JSON.stringify({ totalRemoved: removedRowsWithContext.length, sampleCount: sample.length, sample }, null, 2), 'utf-8');
+        automationLogger.info(`[DiffEngine] Debug: amostra de removidas escrita em ${debugPath}`);
+      } catch (e: any) {
+        automationLogger.warn(`[DiffEngine] Não foi possível escrever arquivo de debug: ${e?.message}`);
+      }
+    }
+
     const addedCount = [...nextSet].filter(sig => !prevSet.has(sig)).length;
+
+    // 6.1 Filtra removidas por período: só linhas com data no período atual contam como removidas (não marcar JAN como removido no run de FEV)
+    let removedInPeriod = removedRowsWithContext;
+    const periodRange = this.periodToDateRange(identity.period);
+    const dateCol = ((schema as any).dashboardMapping && (schema as any).dashboardMapping.date) ? (schema as any).dashboardMapping.date : 'DataE';
+    if (periodRange) {
+      removedInPeriod = removedRowsWithContext.filter(row => {
+        const actualKey = this.getActualKey(row, dateCol);
+        const dateVal = row[actualKey];
+        const norm = this.normalizeDate(String(dateVal || '')).split('T')[0];
+        if (!norm || norm.length < 10) return false;
+        const ymd = norm.substring(0, 10);
+        return ymd >= periodRange.start && ymd <= periodRange.end;
+      });
+      if (removedRowsWithContext.length > removedInPeriod.length) {
+        automationLogger.info(`[DiffEngine] Removidas filtradas por período: ${removedRowsWithContext.length} -> ${removedInPeriod.length} (só linhas com data em ${identity.period} contam como removidas).`);
+      }
+    }
 
     // 7. Gerencia o arquivo DELETED (acumulativo e contextual)
     let oldDeletedRows: any[] = [];
@@ -340,7 +443,7 @@ export class DiffEngine {
     }
 
     const oldDeletedSigs = new Set(oldDeletedRows.map(row => row.ssp_signature));
-    const newlyDeletedFiltered = removedRowsWithContext.filter(row => !oldDeletedSigs.has(row.ssp_signature));
+    const newlyDeletedFiltered = removedInPeriod.filter(row => !oldDeletedSigs.has(row.ssp_signature));
 
     const totalDeletedRows = [...oldDeletedRows, ...newlyDeletedFiltered];
 
