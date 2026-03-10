@@ -59,6 +59,8 @@ export class CatalogService {
      * Extracts Reference, Brand, Group from each row.
      */
     public async updateFromSales(salesData: any[]) {
+        if (!salesData || salesData.length === 0) return;
+
         let updates = 0;
         const now = new Date().toISOString();
 
@@ -69,30 +71,37 @@ export class CatalogService {
         const subGroupKeys = ['Sub-Grupo', 'SubGrupo', 'Sub Grupo', 'SubCategory'];
         const descKeys = ['Descricao', 'Description', 'Nome Produto', 'Produto Nome'];
 
-        const findValue = (row: any, keys: string[]) => {
+        // Optimize: Identify column names once
+        const firstRow = salesData[0];
+        const allKeys = Object.keys(firstRow);
+
+        const getActualKey = (keys: string[]) => {
             for (const k of keys) {
-                // Case insensitive search
-                const rowKey = Object.keys(row).find(rk => rk.toLowerCase() === k.toLowerCase());
-                if (rowKey && row[rowKey]) return String(row[rowKey]).trim();
+                const lowerK = k.toLowerCase();
+                const found = allKeys.find(ak => ak.toLowerCase() === lowerK);
+                if (found) return found;
             }
             return null;
         };
 
+        const actualRefKey = getActualKey(refKeys);
+        const actualBrandKey = getActualKey(brandKeys);
+        const actualGroupKey = getActualKey(groupKeys);
+        const actualSubGroupKey = getActualKey(subGroupKeys);
+        const actualDescKey = getActualKey(descKeys);
+
         for (const row of salesData) {
-            const ref = findValue(row, refKeys);
+            const ref = actualRefKey ? (row[actualRefKey] ? String(row[actualRefKey]).trim() : null) : null;
             if (!ref) continue;
 
-            const brand = findValue(row, brandKeys);
-            const group = findValue(row, groupKeys);
-            const subGroup = findValue(row, subGroupKeys);
-            const description = findValue(row, descKeys);
+            const brand = actualBrandKey ? (row[actualBrandKey] ? String(row[actualBrandKey]).trim() : null) : null;
+            const group = actualGroupKey ? (row[actualGroupKey] ? String(row[actualGroupKey]).trim() : null) : null;
+            const subGroup = actualSubGroupKey ? (row[actualSubGroupKey] ? String(row[actualSubGroupKey]).trim() : null) : null;
+            const description = actualDescKey ? (row[actualDescKey] ? String(row[actualDescKey]).trim() : null) : null;
 
             // Only update if we have at least Brand or Group
             if (brand || group) {
                 const existing = this.catalog[ref];
-
-                // Logic: Upsert. If existing, update missing fields or overwrite if new data is "better"?
-                // For now, we overwrite if we have values, assuming Sales data is authoritative and recent.
 
                 const newValue: ProductInfo = {
                     brand: brand || existing?.brand,

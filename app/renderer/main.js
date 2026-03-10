@@ -98,6 +98,7 @@ window.Dashboard = Dashboard;
 // Presets
 // Presets
 window.loadPresetsToMain = Presets.loadPresetsToMain.bind(Presets);
+window.updateUFSelector = Presets.updateUFSelector.bind(Presets);
 window.loadPresets = Presets.loadPresets.bind(Presets);
 window.handleSavePreset = Presets.handleSavePreset.bind(Presets);
 window.showPresetForm = () => Presets.openNewPresetForm();

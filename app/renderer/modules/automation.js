@@ -34,7 +34,17 @@ export const Automation = {
             const summary = document.getElementById('workflowSummary');
             if (summary) summary.style.display = 'none';
 
-            const result = await window.electronAPI.startAutomation({ presetId });
+            // NOVO: Verifica se há um site/UF específico selecionado
+            const ufSelector = document.getElementById('mainUFSelector');
+            const siteId = ufSelector ? ufSelector.value : null;
+
+            const automationOptions = { presetId };
+            if (siteId) {
+                automationOptions.siteIds = [siteId];
+                Utils.log(`📍 Execução focada na filial selecionada: ${ufSelector.options[ufSelector.selectedIndex].text}`);
+            }
+
+            const result = await window.electronAPI.startAutomation(automationOptions);
             Utils.log(`✅ ${result.message}`);
 
             UI.toggleButtons(true);

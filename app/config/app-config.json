@@ -750,23 +750,23 @@
         {
           "type": "fill",
           "selector": "#dataIni",
-          "value": "[PERIODO:2026-02]",
+          "value": "[PERIODO:2023-Q4]",
           "continueOnError": false,
-          "skipStep": false
+          "skipStep": true
         },
         {
           "type": "fill",
           "selector": "#dataFim",
-          "value": "[PERIODO:2026-02]",
+          "value": "[PERIODO:2023-Q4]",
           "continueOnError": false,
-          "skipStep": false
+          "skipStep": true
         },
         {
           "type": "fillDateRange",
           "selector": "#dataIni,#dataFim",
           "value": "[MES_ATUAL]",
           "continueOnError": false,
-          "skipStep": true
+          "skipStep": false
         },
         {
           "type": "download",
@@ -789,7 +789,7 @@
         "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-01-28T15:56:23.142Z",
-      "lastUsedAt": "2026-03-05T14:01:23.047Z",
+      "lastUsedAt": "2026-03-10T17:54:56.946Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -1572,8 +1572,8 @@
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,
-      "user": "ss:76313035938a6b0ddcca3b023c662d2de9431546a092a38059f55697afad1b37dbaddbe652898ab9d6d6c259a5e5810faef579028521f9b7925d031a1bbe58",
-      "pass": "ss:763130875d93d949b56e20d3ed5e5036240adccd2c0d65fb9f9b88bd4a95658bf275ea744fc4ebc4563af20f38d27c709d56",
+      "user": "ss:7631302aefd850627a7a7817118f9066ef197ff4befb899a63d35436cec976af66aba2d04e98322a6976e8ba7347f13545d76a75480d0a2f634b349fd81554",
+      "pass": "ss:7631308eceee6649964a636632ef66aad517192d16a333f1968b6b2f76eab70ca29bd736f0b0bd136c22adf0163d11934e3a",
       "authType": "login",
       "clientId": "",
       "clientSecret": "",

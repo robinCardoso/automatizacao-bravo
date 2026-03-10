@@ -132,6 +132,7 @@ export const Dashboard = {
     async loadDashboard() {
         try {
             const reportType = document.getElementById('dashReportType').value;
+            const year = document.getElementById('dashYearFilter')?.value || "";
             const month = document.getElementById('dashMonthFilter')?.value || "";
 
             const brand = document.getElementById('dashBrandFilter')?.value || "";
@@ -143,9 +144,10 @@ export const Dashboard = {
             const config = await window.electronAPI.getConfig();
             const destinationDir = config.reportsDir || 'relatorios';
 
-            Utils.log(`[Dashboard] Carregando dados de ${reportType} (Mês: ${month || 'Todos'})...`);
+            Utils.log(`[Dashboard] Carregando dados de ${reportType} (Ano: ${year || 'Todos'}, Mês: ${month || 'Todos'})...`);
 
             const options = {};
+            if (year) options.year = year;
             if (month) options.month = month;
             if (brand) options.brand = brand;
             if (customer) options.customer = customer;
@@ -163,8 +165,9 @@ export const Dashboard = {
 
             Utils.log(`[Dashboard] Dados carregados com sucesso de: ${data.sourceFile}`);
 
-            // Atualiza o seletor de meses
-            this.updateMonthFilter(data.availableMonths, month);
+            // Atualiza o seletor de Anos e Meses
+            this.updateYearFilter(data.availableMonths, year);
+            this.updateMonthFilter(data.availableMonths, month, year);
 
             // Atualiza comboboxes (Marcas, Clientes, Grupos, Sub-Grupos)
             this.updateDynamicFilter('dashBrandFilter', data.availableFilters?.brands, 'Todas as Marcas', brand);
@@ -193,27 +196,58 @@ export const Dashboard = {
         }
     },
 
-    updateMonthFilter(months, selected) {
-        const select = document.getElementById('dashMonthFilter');
+    updateYearFilter(availableMonths, selectedYear) {
+        const select = document.getElementById('dashYearFilter');
         if (!select) return;
 
-        // Preserva a seleção se possível, mas reconstrói as opções se o número mudar ou for a primeira vez
+        const years = [...new Set(availableMonths.map(m => m.split('-')[0]))].sort().reverse();
         const currentOptions = Array.from(select.options).map(o => o.value);
-        const newOptions = ["", ...months];
+        const newOptions = ["", ...years];
 
         if (JSON.stringify(currentOptions) !== JSON.stringify(newOptions)) {
-            const oldValue = selected || select.value;
-            select.innerHTML = '<option value="">Todos os Meses</option>';
-            months.forEach(m => {
+            const oldValue = selectedYear || select.value;
+            select.innerHTML = '<option value="">Todos os Anos</option>';
+            years.forEach(y => {
                 const opt = document.createElement('option');
-                opt.value = m;
-                // Formata YYYY-MM para Mês/Ano amigável
-                const [y, mm] = m.split('-');
-                const monthNames = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-                opt.textContent = `${monthNames[parseInt(mm) - 1]} / ${y}`;
+                opt.value = y;
+                opt.textContent = y;
                 select.appendChild(opt);
             });
             if (newOptions.includes(oldValue)) select.value = oldValue;
+        }
+    },
+
+    updateMonthFilter(availableMonths, selectedMonth, selectedYear) {
+        const select = document.getElementById('dashMonthFilter');
+        if (!select) return;
+
+        // Filtra os meses disponíveis com base no ano selecionado
+        let filteredMonths = availableMonths;
+        if (selectedYear) {
+            filteredMonths = availableMonths.filter(m => m.startsWith(selectedYear + '-'));
+        }
+
+        // Mapeia para apenas o número do mês "MM" ou mantém "YYYY-MM" dependendo da preferência?
+        // Vamos manter YYYY-MM como valor mas mostrar apenas o nome do mês se o ano estiver selecionado
+        const currentOptions = Array.from(select.options).map(o => o.value);
+        const newOptions = ["", ...filteredMonths];
+
+        if (JSON.stringify(currentOptions) !== JSON.stringify(newOptions)) {
+            const oldValue = selectedMonth || select.value;
+            select.innerHTML = '<option value="">Todos os Meses</option>';
+
+            filteredMonths.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m;
+                const [y, mm] = m.split('-');
+                const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                // Se o ano estiver selecionado, mostra apenas o mês. Se não, mostra Mês/Ano.
+                opt.textContent = selectedYear ? monthNames[parseInt(mm) - 1] : `${monthNames[parseInt(mm) - 1].substring(0, 3)} / ${y}`;
+                select.appendChild(opt);
+            });
+
+            if (newOptions.includes(oldValue)) select.value = oldValue;
+            else select.value = ""; // Reseta mês se não existir mais no ano novo
         }
     },
 
@@ -311,11 +345,15 @@ export const Dashboard = {
         const container = document.getElementById('dashboard-filter-pills');
         if (!container) return;
 
+        const yearSelect = document.getElementById('dashYearFilter');
+        const yearVal = yearSelect?.value || '';
+
         const monthSelect = document.getElementById('dashMonthFilter');
         const monthVal = monthSelect?.value || '';
         const monthLabel = monthVal ? (monthSelect?.options[monthSelect.selectedIndex]?.textContent || monthVal) : '';
 
         const filters = [
+            { key: 'year', label: 'Ano', value: yearVal, display: yearVal },
             { key: 'month', label: 'Mês', value: monthVal, display: monthLabel },
             { key: 'brand', label: 'Marca', value: (document.getElementById('dashBrandFilter')?.value || '').trim(), display: null },
             { key: 'customer', label: 'Cliente', value: (document.getElementById('dashCustomerFilter')?.value || '').trim(), display: null },
@@ -332,14 +370,19 @@ export const Dashboard = {
             pill.innerHTML = `${label}: ${display}<button type="button" class="pill-clear" aria-label="Remover filtro">×</button>`;
             const clearBtn = pill.querySelector('.pill-clear');
             clearBtn.addEventListener('click', () => {
-                if (key === 'month' && monthSelect) {
+                if (key === 'year' && yearSelect) {
+                    yearSelect.value = '';
+                } else if (key === 'month' && monthSelect) {
                     monthSelect.value = '';
                 } else {
                     const id = { brand: 'dashBrandFilter', customer: 'dashCustomerFilter', group: 'dashGroupFilter', subGroup: 'dashSubGroupFilter' }[key];
                     const hid = document.getElementById(id);
                     const disp = document.getElementById(id + 'Display');
                     if (hid) hid.value = '';
-                    if (disp) { disp.value = ''; disp.placeholder = disp.placeholder || ''; }
+                    if (disp) {
+                        disp.value = '';
+                        disp.placeholder = disp.getAttribute('data-placeholder') || 'Buscar...';
+                    }
                 }
                 this.loadDashboard();
             });

@@ -89,8 +89,16 @@ export class AutomationEngine {
         currentPreset = presetRepository.getById(options.presetId);
         if (!currentPreset) throw new Error(`Preset não encontrado: ${options.presetId}`);
         sitesToRun = currentPreset.sites || [];
+
+        // NOVO: Se siteIds foi informado, filtra apenas os selecionados dentro do preset
+        if (options.siteIds && options.siteIds.length > 0) {
+          const originalCount = sitesToRun.length;
+          sitesToRun = sitesToRun.filter(site => options.siteIds?.includes(site.id));
+          automationLogger.debug(`[Engine] Filtrando sites do preset: de ${originalCount} para ${sitesToRun.length}`);
+        }
+
         if (sitesToRun.length === 0) {
-          throw new Error('Nenhum site configurado neste Preset');
+          throw new Error('Nenhum site selecionado ou configurado neste Preset');
         }
       } else {
         const allSites = configManager.getSites();

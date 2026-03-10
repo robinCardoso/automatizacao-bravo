@@ -307,39 +307,47 @@ export class Consolidator {
      * Utiliza chaves primárias definidas no schemaMaps.json se disponíveis, caso contrário usa assinatura completa.
      */
     private removeDuplicates(data: any[], tipo: string, overridePKs?: string[]): any[] {
+        if (data.length === 0) return [];
+
         const seen = new Set<string>();
         const metadataCols = ['PERIODO_ORIGINAL', 'ORIGEM_UF', 'ORIGEM_SITE', 'DATA_PROCESSAMENTO_ORIGINAL', 'ORIGEM_SNAPSHOT'];
 
         // Obtém chaves primárias: Prioridade 1 (Override da Execução) > Prioridade 2 (schemaMaps.json)
         const schema = configManager.getSchemaByType(tipo);
-        const primaryKeys: string[] = overridePKs && overridePKs.length > 0 ? overridePKs : (schema?.primaryKey || []);
+        const configPKs: string[] = overridePKs && overridePKs.length > 0 ? overridePKs : (schema?.primaryKey || []);
 
-        if (primaryKeys.length > 0) {
-            automationLogger.debug(`[Consolidator] Deduplicando ${tipo} usando chaves: ${primaryKeys.join(', ')}`);
+        // [OPTIMIZATION] Resolve as chaves reais presentes no dado (case-insensitive)
+        const sampleRow = data[0];
+        const allRowKeys = Object.keys(sampleRow);
+        const resolvedPKs = configPKs.map(cpk => {
+            const lowerCPK = cpk.toLowerCase();
+            return allRowKeys.find(rk => rk.toLowerCase() === lowerCPK) || cpk;
+        });
+
+        if (resolvedPKs.length > 0) {
+            automationLogger.debug(`[Consolidator] Deduplicando ${tipo} usando chaves (resolvidas): ${resolvedPKs.join(', ')}`);
         } else {
             automationLogger.debug(`[Consolidator] Deduplicando ${tipo} usando método completo (sem chaves definidas)`);
         }
 
         return data.filter(row => {
             // 1. Validação de Integridade (Totalizadores/Linhas Vazias)
-            if (primaryKeys.length > 0) {
-                const hasAtLeastOnePK = primaryKeys.some(k => {
+            if (resolvedPKs.length > 0) {
+                const hasAtLeastOnePK = resolvedPKs.some(k => {
                     const val = row[k];
                     return val !== undefined && val !== null && String(val).trim() !== '';
                 });
 
                 // Se a linha não tem NENHUMA chave primária preenchida, é lixo/totalizador.
-                if (!hasAtLeastOnePK) {
-                    return false;
-                }
+                if (!hasAtLeastOnePK) return false;
             }
 
             // 2. Deduplicação
             let signature = "";
 
-            if (primaryKeys.length > 0) {
-                // Assinatura baseada nas chaves primárias (Padronizado com DiffEngine)
-                signature = primaryKeys.map(k => {
+            if (resolvedPKs.length > 0) {
+                // Assinatura baseada nas chaves primárias
+                signature = resolvedPKs.map(k => {
                     const val = row[k];
                     return `|${String(val ?? '').trim()}|`;
                 }).join('::');
@@ -348,7 +356,7 @@ export class Consolidator {
                 signature = Object.entries(row)
                     .filter(([k]) => !metadataCols.includes(k) && !k.startsWith('ssp_'))
                     .map(([_, v]) => `|${String(v ?? '').trim()}|`)
-                    .join('::'); // Alterado para :: para padronizar
+                    .join('::');
             }
 
             if (seen.has(signature)) return false;

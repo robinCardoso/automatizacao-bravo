@@ -34,9 +34,45 @@ export const Presets = {
             });
 
             // Tenta manter a seleção anterior
-            if (currentValue) selector.value = currentValue;
+            if (currentValue) {
+                selector.value = currentValue;
+                this.updateUFSelector(); // Atualiza UFs se houver seleção
+            }
         } catch (error) {
             console.error('Erro ao carregar presets no seletor principal:', error);
+        }
+    },
+
+    /**
+     * Atualiza o seletor de UFs baseado no Preset selecionado
+     */
+    async updateUFSelector() {
+        try {
+            const presetId = document.getElementById('mainPresetSelector')?.value;
+            const ufSelector = document.getElementById('mainUFSelector');
+            if (!ufSelector) return;
+
+            // Reseta para padrão
+            ufSelector.innerHTML = '<option value="">TODAS AS EMPRESAS</option>';
+
+            if (!presetId) return;
+
+            const presets = await window.electronAPI.getPresets();
+            const selectedPreset = presets.find(p => p.id === presetId);
+
+            if (selectedPreset && selectedPreset.sites && selectedPreset.sites.length > 0) {
+                // Ordena por UF
+                const sortedSites = [...selectedPreset.sites].sort((a, b) => (a.uf || '').localeCompare(b.uf || ''));
+
+                sortedSites.forEach(site => {
+                    const option = document.createElement('option');
+                    option.value = site.id;
+                    option.textContent = `${site.uf || '??'} - ${site.name}`;
+                    ufSelector.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao atualizar seletor de UFs:', error);
         }
     },
 

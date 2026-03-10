@@ -99,12 +99,20 @@
                                 <div class="preset-selector-group">
                                     <label class="premium-label">Fluxo de Operação (Preset)</label>
                                     <div class="input-with-button">
-                                        <select id="mainPresetSelector" class="premium-select">
+                                        <select id="mainPresetSelector" class="premium-select"
+                                            onchange="updateUFSelector()">
                                             <option value="">Selecione um Preset...</option>
                                         </select>
                                         <button class="btn-refresh" onclick="loadPresetsToMain()"
                                             title="Recarregar">🔄</button>
                                     </div>
+                                </div>
+
+                                <div class="preset-selector-group" style="margin-left: 15px;">
+                                    <label class="premium-label">Empresa/UF Específica (Opcional)</label>
+                                    <select id="mainUFSelector" class="premium-select">
+                                        <option value="">TODAS AS EMPRESAS</option>
+                                    </select>
                                 </div>
 
                                 <div class="main-actions-group">
@@ -226,6 +234,10 @@
                             <!-- Bottom Row: Filters -->
                             <div class="dashboard-filters"
                                 style="width: 100%; display: flex; flex-wrap: wrap; gap: 10px; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 4px;">
+                                <select id="dashYearFilter" class="premium-select-small"
+                                    onchange="Dashboard.loadDashboard()" style="flex: 1; min-width: 100px;">
+                                    <option value="">Todos os Anos</option>
+                                </select>
                                 <select id="dashMonthFilter" class="premium-select-small"
                                     onchange="Dashboard.loadDashboard()" style="flex: 1; min-width: 120px;">
                                     <option value="">Todos os Meses</option>
@@ -235,16 +247,18 @@
                                     <input type="text" id="dashBrandFilterDisplay" class="dash-combobox-input" readonly
                                         placeholder="Todas as Marcas" autocomplete="off">
                                     <div class="dash-combobox-dropdown">
-                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..." autocomplete="off">
+                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..."
+                                            autocomplete="off">
                                         <div class="dash-combobox-list"></div>
                                     </div>
                                 </div>
                                 <div class="dash-combobox" data-filter="customer" style="flex: 1; min-width: 140px;">
                                     <input type="hidden" id="dashCustomerFilter" value="">
-                                    <input type="text" id="dashCustomerFilterDisplay" class="dash-combobox-input" readonly
-                                        placeholder="Todos os Clientes" autocomplete="off">
+                                    <input type="text" id="dashCustomerFilterDisplay" class="dash-combobox-input"
+                                        readonly placeholder="Todos os Clientes" autocomplete="off">
                                     <div class="dash-combobox-dropdown">
-                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..." autocomplete="off">
+                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..."
+                                            autocomplete="off">
                                         <div class="dash-combobox-list"></div>
                                     </div>
                                 </div>
@@ -253,16 +267,18 @@
                                     <input type="text" id="dashGroupFilterDisplay" class="dash-combobox-input" readonly
                                         placeholder="Todos os Grupos" autocomplete="off">
                                     <div class="dash-combobox-dropdown">
-                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..." autocomplete="off">
+                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..."
+                                            autocomplete="off">
                                         <div class="dash-combobox-list"></div>
                                     </div>
                                 </div>
                                 <div class="dash-combobox" data-filter="subGroup" style="flex: 1; min-width: 140px;">
                                     <input type="hidden" id="dashSubGroupFilter" value="">
-                                    <input type="text" id="dashSubGroupFilterDisplay" class="dash-combobox-input" readonly
-                                        placeholder="Todos os Sub-Grupos" autocomplete="off">
+                                    <input type="text" id="dashSubGroupFilterDisplay" class="dash-combobox-input"
+                                        readonly placeholder="Todos os Sub-Grupos" autocomplete="off">
                                     <div class="dash-combobox-dropdown">
-                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..." autocomplete="off">
+                                        <input type="text" class="dash-combobox-search" placeholder="Filtrar..."
+                                            autocomplete="off">
                                         <div class="dash-combobox-list"></div>
                                     </div>
                                 </div>
@@ -319,9 +335,12 @@
                             </div>
 
                             <div class="dashboard-chart-submenus">
-                                <button type="button" class="chart-submenu-btn active" data-chart-submenu="1" onclick="Dashboard.switchChartSubmenu(1)">Tempo e Grupo</button>
-                                <button type="button" class="chart-submenu-btn" data-chart-submenu="2" onclick="Dashboard.switchChartSubmenu(2)">Marca e UF</button>
-                                <button type="button" class="chart-submenu-btn" data-chart-submenu="3" onclick="Dashboard.switchChartSubmenu(3)">Por Cliente</button>
+                                <button type="button" class="chart-submenu-btn active" data-chart-submenu="1"
+                                    onclick="Dashboard.switchChartSubmenu(1)">Tempo e Grupo</button>
+                                <button type="button" class="chart-submenu-btn" data-chart-submenu="2"
+                                    onclick="Dashboard.switchChartSubmenu(2)">Marca e UF</button>
+                                <button type="button" class="chart-submenu-btn" data-chart-submenu="3"
+                                    onclick="Dashboard.switchChartSubmenu(3)">Por Cliente</button>
                             </div>
 
                             <div class="dashboard-chart-panel active" data-chart-submenu="1">
@@ -372,14 +391,16 @@
                                 <div class="dashboard-grid">
                                     <div class="chart-card chart-card-clients">
                                         <h4>Volume por Cliente</h4>
-                                        <p class="chart-subtitle">Gráfico com todas as empresas (role para ver) · lista na tabela abaixo</p>
+                                        <p class="chart-subtitle">Gráfico com todas as empresas (role para ver) · lista
+                                            na tabela abaixo</p>
                                         <div class="chart-content chart-content-fixed">
                                             <div id="chartAssociadoWrap" class="chart-inner-scroll">
                                                 <canvas id="chartAssociado"></canvas>
                                             </div>
                                         </div>
                                         <div class="client-table-wrap">
-                                            <input type="text" id="clientTableSearch" class="client-table-search" placeholder="Buscar cliente..." autocomplete="off">
+                                            <input type="text" id="clientTableSearch" class="client-table-search"
+                                                placeholder="Buscar cliente..." autocomplete="off">
                                             <div class="client-table-scroll">
                                                 <table id="chartAssociadoTable" class="client-volume-table">
                                                     <thead>
@@ -405,7 +426,8 @@
         <footer class="fixed-footer">
             <div class="fixed-footer-left">
                 <button type="button" class="btn btn-footer" onclick="showHelp()">❓ Ajuda</button>
-                <button type="button" class="btn btn-footer" id="btnCheckUpdates" onclick="checkForUpdates()">🔄 Verificar atualizações</button>
+                <button type="button" class="btn btn-footer" id="btnCheckUpdates" onclick="checkForUpdates()">🔄
+                    Verificar atualizações</button>
             </div>
             <div class="fixed-footer-center">
                 <span id="footerVersion">Versão 1.0.1 | © 2026 Automatizador Bravo</span>
@@ -421,7 +443,8 @@
                 <div class="modal-header">
                     <h3>Atualização disponível</h3>
                 </div>
-                <p id="updateReadyMessage" style="padding: 16px; color: #334155;">A nova versão foi baixada. Reiniciar o aplicativo para instalar?</p>
+                <p id="updateReadyMessage" style="padding: 16px; color: #334155;">A nova versão foi baixada. Reiniciar o
+                    aplicativo para instalar?</p>
                 <div style="display: flex; gap: 8px; justify-content: flex-end; padding: 0 16px 16px;">
                     <button type="button" class="btn btn-secondary" onclick="closeUpdateReadyModal()">Depois</button>
                     <button type="button" class="btn btn-primary" onclick="quitAndInstall()">Reiniciar agora</button>
@@ -838,12 +861,16 @@
                         <div id="siteForm"
                             style="display: none; margin-top: 25px; padding-top: 25px; border-top: 2px dashed #f4f7f9;">
                             <div class="config-section-title">Definições do Site</div>
-                            <div id="siteFormCopyFromRow" style="margin-bottom: 16px; padding: 10px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                                <label class="form-label" style="margin-bottom: 6px; display: block;">📋 Copiar configuração de um site existente</label>
+                            <div id="siteFormCopyFromRow"
+                                style="margin-bottom: 16px; padding: 10px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <label class="form-label" style="margin-bottom: 6px; display: block;">📋 Copiar
+                                    configuração de um site existente</label>
                                 <select id="siteCopyFrom" class="form-control" style="max-width: 320px;">
                                     <option value="">— Nenhum (formulário em branco) —</option>
                                 </select>
-                                <small style="color: #64748b; font-size: 10px; display: block; margin-top: 4px;">Preenche seletores, passos e relatório; altere só Nome, UF, URL e Pasta.</small>
+                                <small
+                                    style="color: #64748b; font-size: 10px; display: block; margin-top: 4px;">Preenche
+                                    seletores, passos e relatório; altere só Nome, UF, URL e Pasta.</small>
                             </div>
                             <input type="hidden" id="siteId">
 
@@ -952,8 +979,10 @@
                                     ➕ Adicionar Passo de Execução
                                 </button>
                             </div>
-                            <div id="presetStepsMessage" style="display: none; padding: 12px; background: #e8f8f5; border-radius: 8px; margin-bottom: 15px; color: #1a5f4a; font-size: 12px;">
-                                Os passos pós-login são compartilhados pelo preset. Edite na seção <strong>Passos pós-login do preset</strong> acima.
+                            <div id="presetStepsMessage"
+                                style="display: none; padding: 12px; background: #e8f8f5; border-radius: 8px; margin-bottom: 15px; color: #1a5f4a; font-size: 12px;">
+                                Os passos pós-login são compartilhados pelo preset. Edite na seção <strong>Passos
+                                    pós-login do preset</strong> acima.
                             </div>
 
                             <div class="form-row" style="margin-top: 25px;">

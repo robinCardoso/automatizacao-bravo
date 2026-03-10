@@ -236,7 +236,8 @@ function registerIpcHandlers(): void {
       // Rodar em modo visível para que o usuário possa ver o login acontecendo
       // Futuramente isso pode ser uma configuração
       automationEngine.runAutomation({
-        presetId: config.presetId
+        presetId: config.presetId,
+        siteIds: config.siteIds
       }).then((results: any) => {
         webContents.send('automation-complete', { results });
       }).catch((error: any) => {
@@ -461,7 +462,7 @@ function setupAutoUpdater(): void {
   // Checagem em background após 8 segundos (opcional)
   setTimeout(() => {
     if (app.isPackaged && mainWindow) {
-      autoUpdater.checkForUpdates().catch(() => {});
+      autoUpdater.checkForUpdates().catch(() => { });
     }
   }, 8000);
 }
