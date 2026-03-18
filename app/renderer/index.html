@@ -201,7 +201,15 @@
                 </div> <!-- view-automation -->
 
                 <!-- VIEW 2: DASHBOARD (NOVO) -->
-                <div id="view-dashboard" class="app-view">
+                <div id="view-dashboard" class="app-view" style="position: relative;">
+                    <!-- LOADING OVERLAY -->
+                    <div id="dashLoadingOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 1000; justify-content: center; align-items: center; flex-direction: column;">
+                        <div class="spinner" style="border: 4px solid rgba(0,0,0,0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: #3498db; animation: spin 1s linear infinite;"></div>
+                        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+                        <div style="margin-top: 15px; font-weight: bold; color: #2c3e50;">Aguarde, processando dados...</div>
+                        <div style="font-size: 11px; color: #7f8c8d; margin-top: 5px;">(Pode levar alguns segundos para arquivos grandes)</div>
+                    </div>
+
                     <section class="premium-card">
                         <div class="premium-card-header dashboard-header-compact"
                             style="flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 6px;">

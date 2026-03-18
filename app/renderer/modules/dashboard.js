@@ -130,7 +130,13 @@ export const Dashboard = {
      * Carrega os dados do dashboard do backend
      */
     async loadDashboard() {
+        const loadingOverlay = document.getElementById('dashLoadingOverlay');
         try {
+            if (loadingOverlay) loadingOverlay.style.display = 'flex';
+            
+            // Permite que o DOM seja atualizado com o "Loading" antes da thread do backend travar
+            await new Promise(resolve => setTimeout(resolve, 50));
+
             const reportType = document.getElementById('dashReportType').value;
             const year = document.getElementById('dashYearFilter')?.value || "";
             const month = document.getElementById('dashMonthFilter')?.value || "";
@@ -193,6 +199,8 @@ export const Dashboard = {
             this.renderCharts(data.charts, data.mappingUsed.category);
         } catch (error) {
             Utils.log(`[Dashboard] Erro: ${error.message}`, 'error');
+        } finally {
+            if (loadingOverlay) loadingOverlay.style.display = 'none';
         }
     },
 
