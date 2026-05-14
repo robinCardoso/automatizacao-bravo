@@ -783,6 +783,10 @@ export const Dashboard = {
         if (!el) return;
         if (this.charts.category) this.charts.category.destroy();
         const ctx = el.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, 400, 0);
+        gradient.addColorStop(0, '#06b6d4');
+        gradient.addColorStop(1, '#0891b2');
+
         this.charts.category = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -790,15 +794,27 @@ export const Dashboard = {
                 datasets: [{
                     label: label,
                     data: data.map(d => d.value),
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                    borderRadius: 6
+                    backgroundColor: gradient,
+                    borderRadius: 6,
+                    barThickness: 16
                 }]
             },
             options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => this.formatVolume(context.raw)
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                }
             }
         });
     },
@@ -809,12 +825,20 @@ export const Dashboard = {
         const wrap = document.getElementById('chartAssociadoWrap');
         const el = document.getElementById('chartAssociado');
         if (this.charts.associado) this.charts.associado.destroy();
-        const barHeightPx = 28;
-        const minHeight = 280;
-        const chartHeight = chartData.length > 0 ? Math.max(minHeight, chartData.length * barHeightPx + 80) : minHeight;
+        
+        // Altura dinâmica baseada na quantidade de clientes para o scroll
+        const barHeightPx = 30;
+        const paddingBottom = 40;
+        const chartHeight = chartData.length > 0 ? (chartData.length * barHeightPx + paddingBottom) : 240;
+        
         if (wrap) wrap.style.height = `${chartHeight}px`;
+        
         if (el) {
             const ctx = el.getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 400, 0);
+            gradient.addColorStop(0, '#10b981');
+            gradient.addColorStop(1, '#059669');
+
             this.charts.associado = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -822,15 +846,29 @@ export const Dashboard = {
                     datasets: [{
                         label: 'Volume por Cliente',
                         data: chartData.map(d => d.value),
-                        backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                        borderRadius: 6
+                        backgroundColor: gradient,
+                        hoverBackgroundColor: '#059669',
+                        borderRadius: 6,
+                        barThickness: 18,
+                        maxBarThickness: 24
                     }]
                 },
                 options: {
                     indexAxis: 'y',
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => this.formatVolume(context.raw)
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                        y: { grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: false } }
+                    }
                 }
             });
         }

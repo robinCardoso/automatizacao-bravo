@@ -330,7 +330,7 @@ export class DashboardService {
             brand: getActualKey('Marca'),
             customer: getActualKey('Cliente') || getActualKey('Cliente / Nome Fantasia') || getActualKey('Nome Fantasia'),
             tipoOperacao: getActualKey('Tipo Operação'),
-            uf: getActualKey('UF') || getActualKey('Estado') || getActualKey('Situação Tributária') || getActualKey('UF_DESTINO'),
+            uf: getActualKey('ORIGEM_UF') || getActualKey('UF') || getActualKey('Estado') || getActualKey('Situação Tributária') || getActualKey('UF_DESTINO'),
             associado: getActualKey('Associado') || getActualKey('Vendedor') || getActualKey('Cliente')
         };
 

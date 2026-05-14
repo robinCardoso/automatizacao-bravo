@@ -1157,14 +1157,15 @@ body {
 .chart-content {
     flex: 1;
     position: relative;
-    min-height: 0;
+    min-height: 200px;
+    overflow: hidden; /* Evita estouro visual */
 }
 
 /* Volume por Cliente: gráfico (top 30) + tabela rolável para muitos clientes */
 .chart-card-clients {
     display: flex;
     flex-direction: column;
-    min-height: 420px;
+    min-height: 480px; /* Aumentado para caber gráfico + tabela */
 }
 .chart-card-clients .chart-subtitle {
     margin: 0 0 8px 0;
@@ -1174,25 +1175,22 @@ body {
 }
 .chart-content-fixed {
     flex: none;
-    max-height: 260px;
+    height: 240px; /* Altura fixa para o gráfico superior */
     overflow-y: auto;
     overflow-x: hidden;
+    margin-bottom: 12px;
 }
-.chart-content-group-scroll {
-    flex: none;
-    max-height: 180px;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
+.chart-content-group-scroll,
 .chart-content-uf-scroll {
-    flex: none;
-    max-height: 180px;
+    flex: 1;
+    min-height: 200px;
+    max-height: 300px; /* Aumentado */
     overflow-y: auto;
     overflow-x: hidden;
 }
 .chart-inner-scroll {
     width: 100%;
-    min-height: 280px;
+    min-height: 100%;
     position: relative;
 }
 .chart-inner-scroll canvas {

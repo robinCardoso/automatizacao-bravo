@@ -1551,7 +1551,7 @@
         "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-02-02T12:34:27.670Z",
-      "lastUsedAt": "2026-03-31T16:19:36.728Z",
+      "lastUsedAt": "2026-05-14T18:49:12.926Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -1573,8 +1573,8 @@
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,
-      "user": "ss:763130c34b43f57cd4f25e39f9978faa99a5dc3141f10f5a8b3891c4ee60f7423d4ec5be3f0f1f4a76c6709ce607697f0ed73c551d632df51b57a50ca04897",
-      "pass": "ss:763130290c2291e9f509facca18084092a7bf2d0d6088230d1477659f8a7efb4cd330d754e4ada1ad3c4eac54fb0aa9e61c4",
+      "user": "ss:7631305a9149a1e4bd0ac6fbfda940cc52b40687e43a9a908998a8ffa154d45d9424a561001d0ec10d79d4de882aa01feaa18e1098e22644a36691762689c1",
+      "pass": "ss:763130459a524732605d96152dd64967095e38ebae42f942d64fdcda8045ba6e9ed3c08ceb0dfc188deda1374f820e4fbd19",
       "authType": "login",
       "clientId": "",
       "clientSecret": "",
@@ -1592,5 +1592,10 @@
     "retryAttempts": 3,
     "showLogo": true,
     "compactLayout": false
+  },
+  "automation": {
+    "enableSmartRetry": true,
+    "maxRetryPasses": 1,
+    "retryDelayMinutes": 5
   }
 }
