@@ -7,6 +7,7 @@ import { automationLogger } from '../../config/logger';
 import { buildMasterSnapshotName } from '../../policy/snapshot/FileNamingPolicy';
 import { AppPaths } from '../utils/AppPaths';
 import { ExcelUtils } from '../utils/ExcelUtils';
+import { PerformanceMonitor } from '../utils/PerformanceMonitor';
 
 export interface SiteResult {
     success: boolean;
@@ -29,6 +30,7 @@ export class Consolidator {
      * @param destinationDir Diretório de saída
      */
     async consolidate(results: any[], destinationDir: string, tipoOverride?: string): Promise<{ current: string | null, deleted: string | null }> {
+        const perf = new PerformanceMonitor(`consolidate:${tipoOverride || 'AUTO'}`);
         const resolvedDest = configManager.resolvePath(destinationDir) || destinationDir;
 
         // Identifica o tipo de relatório a partir dos resultados (ex: VENDA, PEDIDO)
@@ -60,10 +62,12 @@ export class Consolidator {
             results
         );
 
-        return {
+        const output = {
             current: currentPath,
             deleted: deletedPath
         };
+        perf.done({ current: Boolean(currentPath), deleted: Boolean(deletedPath) });
+        return output;
     }
 
     /**
@@ -77,6 +81,7 @@ export class Consolidator {
         logLabel: string,
         currentResults: any[]
     ): Promise<string | null> {
+        const perf = new PerformanceMonitor(`merge:${tipo}:${mode}`);
         const outputPath = path.join(destinationDir, outputName);
         let masterData: any[] = [];
 
@@ -89,9 +94,10 @@ export class Consolidator {
         currentResults.forEach(r => { if (r.siteId) siteNames.set(r.siteId, r.siteName); });
 
         // Identifica todos os arquivos físicos de snapshot relevantes
-        const allSnapshots = this.findAllSnapshots(tipo, mode, destinationDir);
+        const allSnapshots = await this.findAllSnapshots(tipo, mode, destinationDir);
         if (allSnapshots.length === 0) {
             automationLogger.info(`[Consolidator] Nenhum snapshot tipo ${tipo} encontrado para consolidar.`);
+            perf.done({ snapshots: 0 });
             return null;
         }
 
@@ -110,71 +116,72 @@ export class Consolidator {
         }
 
         try {
-            // Leitura paralela de snapshots para melhor performance
-            const snapshotDataPromises = allSnapshots.map(async (snap) => {
-                if (!fs.existsSync(snap.path)) return null;
-
+            const dedupeState = this.createDeduper(tipo, customPKs);
+            let rowsRead = 0;
+            for (const snap of allSnapshots) {
+                if (!(await this.pathExists(snap.path))) continue;
                 try {
                     automationLogger.debug(`[Consolidator] Lendo ${mode}: ${snap.path}`);
                     const workbook = XLSX.readFile(snap.path);
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    if (!sheet) return null;
+                    if (!sheet) continue;
 
                     const rows: any[] = ExcelUtils.safeSheetToJson(sheet, { defval: "" });
-                    if (rows.length === 0) return null;
+                    if (rows.length === 0) continue;
+                    rowsRead += rows.length;
 
-                    const meta = this.getSnapshotMeta(snap.path);
+                    const meta = await this.getSnapshotMeta(snap.path);
                     const processedDate = meta?.lastUpdated || new Date(snap.mtime).toISOString();
                     const siteName = siteNames.get(snap.siteId) || snap.siteId;
 
-                    // Injeta colunas de metadados para rastreabilidade master
-                    return rows.map(row => ({
-                        PERIODO_ORIGINAL: snap.period,
-                        ORIGEM_UF: snap.uf,
-                        ORIGEM_SITE: siteName,
-                        DATA_PROCESSAMENTO_ORIGINAL: processedDate,
-                        ORIGEM_SNAPSHOT: snap.filename,
-                        ...row
-                    }));
+                    // Processa em blocos para reduzir picos de memória e liberar event loop.
+                    const chunkSize = 5000;
+                    for (let i = 0; i < rows.length; i += chunkSize) {
+                        const chunk = rows.slice(i, i + chunkSize);
+                        for (const row of chunk) {
+                            const enriched = {
+                                PERIODO_ORIGINAL: snap.period,
+                                ORIGEM_UF: snap.uf,
+                                ORIGEM_SITE: siteName,
+                                DATA_PROCESSAMENTO_ORIGINAL: row.ssp_data_processamento || row.DATA_PROCESSAMENTO_ORIGINAL || processedDate,
+                                ORIGEM_SNAPSHOT: snap.filename,
+                                ...row
+                            };
+                            if (dedupeState.accept(enriched)) {
+                                masterData.push(enriched);
+                            }
+                        }
+                        await new Promise(resolve => setImmediate(resolve));
+                    }
                 } catch (error: any) {
                     automationLogger.error(`[Consolidator] Erro ao ler snapshot ${snap.path}: ${error.message}`);
-                    return null;
                 }
-            });
+            }
 
-            // Aguarda todas as leituras em paralelo
-            const snapshotDataArrays = await Promise.all(snapshotDataPromises);
+            if (masterData.length === 0) {
+                perf.done({ snapshots: allSnapshots.length, rowsRead: 0, rowsOut: 0 });
+                return null;
+            }
 
-            // Filtra resultados nulos e concatena todos os dados
-            masterData = snapshotDataArrays
-                .filter((data): data is any[] => data !== null)
-                .flat();
-
-            if (masterData.length === 0) return null;
-
-            // Detecção e remoção de duplicatas factuais entre diferentes períodos
-            const initialCount = masterData.length;
-            masterData = this.removeDuplicates(masterData, tipo, customPKs);
-            const dedupCount = initialCount - masterData.length;
-
+            const dedupCount = rowsRead - masterData.length;
             if (dedupCount > 0) {
-                automationLogger.info(`[Consolidator] ${dedupCount} duplicatas de períodos/execuções anteriores removidas.`);
+                automationLogger.info(`[Consolidator] ${dedupCount} duplicatas removidas na deduplicação incremental.`);
             }
 
             const masterWs = XLSX.utils.json_to_sheet(masterData);
             const masterWb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(masterWb, masterWs, 'Consolidado');
 
-            if (!fs.existsSync(destinationDir)) {
-                fs.mkdirSync(destinationDir, { recursive: true });
-            }
+            await fs.promises.mkdir(destinationDir, { recursive: true });
 
-            XLSX.writeFile(masterWb, outputPath);
+            XLSX.writeFile(masterWb, outputPath, { compression: true });
             automationLogger.info(`[Consolidator] ${logLabel} concluído: ${masterData.length} registros em ${outputPath}`);
+            perf.done({ snapshots: allSnapshots.length, rowsOut: masterData.length });
             return outputPath;
 
         } catch (error: any) {
             automationLogger.error(`[Consolidator] Falha fatal ao consolidar ${tipo}/${mode}: ${error.message}`);
+            perf.done({ error: error.message });
             return null;
         }
     }
@@ -205,21 +212,21 @@ export class Consolidator {
      * Busca todos os snapshots físicos salvos no sistema para um determinado tipo e modo
      * Procura em dois locais: pasta interna do app E pasta de destino (onde os arquivos são salvos)
      */
-    private findAllSnapshots(tipo: string, mode: 'CURRENT' | 'DELETED', destinationDir?: string): any[] {
+    private async findAllSnapshots(tipo: string, mode: 'CURRENT' | 'DELETED', destinationDir?: string): Promise<any[]> {
         const found: any[] = [];
 
         // 1. Busca na pasta interna do app (AppPaths.getSnapshotsPath())
         const snapshotsBase = AppPaths.getSnapshotsPath();
-        if (fs.existsSync(snapshotsBase)) {
-            const siteDirs = fs.readdirSync(snapshotsBase);
+        if (await this.pathExists(snapshotsBase)) {
+            const siteDirs = await fs.promises.readdir(snapshotsBase);
 
             for (const siteId of siteDirs) {
                 const sitePath = path.join(snapshotsBase, siteId);
                 try {
-                    const stats = fs.statSync(sitePath);
+                    const stats = await fs.promises.stat(sitePath);
                     if (!stats.isDirectory()) continue;
 
-                    const files = fs.readdirSync(sitePath);
+                    const files = await fs.promises.readdir(sitePath);
                     for (const file of files) {
                         // Formato esperado: TIPO_MODE_PERIOD_UF.xlsx (Normalizado para Uppercase no startWith)
                         if (file.toUpperCase().startsWith(`${tipo}_${mode}_`) && file.endsWith('.xlsx')) {
@@ -230,7 +237,7 @@ export class Consolidator {
                             const period = parts.slice(2).join('_');
 
                             const filePath = path.join(sitePath, file);
-                            const fileStat = fs.statSync(filePath);
+                            const fileStat = await fs.promises.stat(filePath);
 
                             found.push({
                                 path: filePath,
@@ -248,17 +255,17 @@ export class Consolidator {
 
         // 2. Busca na pasta de destino (ex: C:\Relatorios\Pedidos)
         // Procura em subpastas como UF-Pedidos, UF-Vendas, etc.
-        if (destinationDir && fs.existsSync(destinationDir)) {
+        if (destinationDir && await this.pathExists(destinationDir)) {
             try {
-                const destDirs = fs.readdirSync(destinationDir);
+                const destDirs = await fs.promises.readdir(destinationDir);
 
                 for (const subDir of destDirs) {
                     const subDirPath = path.join(destinationDir, subDir);
                     try {
-                        const stats = fs.statSync(subDirPath);
+                        const stats = await fs.promises.stat(subDirPath);
                         if (!stats.isDirectory()) continue;
 
-                        const files = fs.readdirSync(subDirPath);
+                        const files = await fs.promises.readdir(subDirPath);
                         for (const file of files) {
                             if (file.toUpperCase().startsWith(`${tipo}_${mode}_`) && file.endsWith('.xlsx')) {
                                 const parts = file.replace('.xlsx', '').split('_');
@@ -268,7 +275,7 @@ export class Consolidator {
                                 const period = parts.slice(2).join('_');
 
                                 const filePath = path.join(subDirPath, file);
-                                const fileStat = fs.statSync(filePath);
+                                const fileStat = await fs.promises.stat(filePath);
 
                                 found.push({
                                     path: filePath,
@@ -291,78 +298,65 @@ export class Consolidator {
         return found;
     }
 
-    /**
-     * Tenta ler o metadata para obter a data de processamento original
-     */
-    private getSnapshotMeta(filePath: string): any {
+    private async getSnapshotMeta(filePath: string): Promise<any> {
         const metaPath = filePath.replace('_CURRENT_', '_META_').replace('_DELETED_', '_META_').replace('.xlsx', '.json');
-        if (fs.existsSync(metaPath)) {
-            try { return JSON.parse(fs.readFileSync(metaPath, 'utf8')); } catch { return null; }
+        if (!(await this.pathExists(metaPath))) return null;
+        try {
+            const raw = await fs.promises.readFile(metaPath, 'utf8');
+            return JSON.parse(raw);
+        } catch {
+            return null;
         }
-        return null;
     }
 
     /**
      * Remove registros duplicados mantendo apenas o registro vindo do snapshot mais recente (mtime)
      * Utiliza chaves primárias definidas no schemaMaps.json se disponíveis, caso contrário usa assinatura completa.
      */
-    private removeDuplicates(data: any[], tipo: string, overridePKs?: string[]): any[] {
-        if (data.length === 0) return [];
-
+    private createDeduper(tipo: string, overridePKs?: string[]) {
         const seen = new Set<string>();
         const metadataCols = ['PERIODO_ORIGINAL', 'ORIGEM_UF', 'ORIGEM_SITE', 'DATA_PROCESSAMENTO_ORIGINAL', 'ORIGEM_SNAPSHOT'];
-
-        // Obtém chaves primárias: Prioridade 1 (Override da Execução) > Prioridade 2 (schemaMaps.json)
         const schema = configManager.getSchemaByType(tipo);
         const configPKs: string[] = overridePKs && overridePKs.length > 0 ? overridePKs : (schema?.primaryKey || []);
-
-        // [OPTIMIZATION] Resolve as chaves reais presentes no dado (case-insensitive)
-        const sampleRow = data[0];
-        const allRowKeys = Object.keys(sampleRow);
-        const resolvedPKs = configPKs.map(cpk => {
-            const lowerCPK = cpk.toLowerCase();
-            return allRowKeys.find(rk => rk.toLowerCase() === lowerCPK) || cpk;
-        });
-
-        if (resolvedPKs.length > 0) {
-            automationLogger.debug(`[Consolidator] Deduplicando ${tipo} usando chaves (resolvidas): ${resolvedPKs.join(', ')}`);
-        } else {
-            automationLogger.debug(`[Consolidator] Deduplicando ${tipo} usando método completo (sem chaves definidas)`);
-        }
-
-        return data.filter(row => {
-            // 1. Validação de Integridade (Totalizadores/Linhas Vazias)
-            if (resolvedPKs.length > 0) {
-                const hasAtLeastOnePK = resolvedPKs.some(k => {
-                    const val = row[k];
-                    return val !== undefined && val !== null && String(val).trim() !== '';
-                });
-
-                // Se a linha não tem NENHUMA chave primária preenchida, é lixo/totalizador.
-                if (!hasAtLeastOnePK) return false;
+        let resolvedPKs: string[] | null = null;
+        if (configPKs.length > 0) automationLogger.debug(`[Consolidator] Deduplicando ${tipo} com PK configurada.`);
+        else automationLogger.debug(`[Consolidator] Deduplicando ${tipo} sem PK configurada (fallback completo).`);
+        return {
+            accept: (row: any) => {
+                if (!resolvedPKs) {
+                    const allRowKeys = Object.keys(row);
+                    resolvedPKs = configPKs.map(cpk => {
+                        const lowerCPK = cpk.toLowerCase();
+                        return allRowKeys.find(rk => rk.toLowerCase() === lowerCPK) || cpk;
+                    });
+                }
+                if (resolvedPKs.length > 0) {
+                    const hasAtLeastOnePK = resolvedPKs.some(k => {
+                        const val = row[k];
+                        return val !== undefined && val !== null && String(val).trim() !== '';
+                    });
+                    if (!hasAtLeastOnePK) return false;
+                }
+                const signature = resolvedPKs.length > 0
+                    ? resolvedPKs.map(k => `|${String(row[k] ?? '').trim()}|`).join('::')
+                    : Object.entries(row)
+                        .filter(([k]) => !metadataCols.includes(k) && !k.startsWith('ssp_'))
+                        .map(([_, v]) => `|${String(v ?? '').trim()}|`)
+                        .join('::');
+                if (seen.has(signature)) return false;
+                seen.add(signature);
+                return true;
             }
+        };
+    }
 
-            // 2. Deduplicação
-            let signature = "";
-
-            if (resolvedPKs.length > 0) {
-                // Assinatura baseada nas chaves primárias
-                signature = resolvedPKs.map(k => {
-                    const val = row[k];
-                    return `|${String(val ?? '').trim()}|`;
-                }).join('::');
-            } else {
-                // Fallback: Assinatura baseada em todos os dados factuais
-                signature = Object.entries(row)
-                    .filter(([k]) => !metadataCols.includes(k) && !k.startsWith('ssp_'))
-                    .map(([_, v]) => `|${String(v ?? '').trim()}|`)
-                    .join('::');
-            }
-
-            if (seen.has(signature)) return false;
-            seen.add(signature);
+    private async pathExists(targetPath: string): Promise<boolean> {
+        try {
+            await fs.promises.access(targetPath, fs.constants.F_OK);
             return true;
-        });
+        } catch {
+            return false;
+        }
     }
 }
 

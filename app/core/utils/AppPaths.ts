@@ -1,6 +1,21 @@
-import { app } from 'electron';
 import * as path from 'path';
 import * as fs from 'fs';
+
+type ElectronAppLike = {
+    isPackaged?: boolean;
+    getPath?: (name: string) => string;
+};
+
+function resolveElectronApp(): ElectronAppLike | null {
+    try {
+        // Evita dependência hard de 'electron' em contextos de worker empacotado.
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const electron = require('electron');
+        return electron?.app ?? null;
+    } catch {
+        return null;
+    }
+}
 
 export class AppPaths {
     /**
@@ -9,10 +24,19 @@ export class AppPaths {
      * Em desenvolvimento: ./app/ (relativo ao CWD)
      */
     public static getBaseDataPath(): string {
-        if (app.isPackaged) {
-            return app.getPath('userData');
+        const app = resolveElectronApp();
+        // Em worker_threads, `electron.app` pode não estar disponível.
+        if (app && typeof app.getPath === 'function') {
+            if (app.isPackaged) {
+                return app.getPath('userData');
+            }
+            return path.join(process.cwd(), 'app');
         }
-        // Em desenvolvimento, mantemos na pasta do projeto para facilitar inspect
+
+        // Fallback seguro para contextos sem `app` (ex.: worker thread).
+        if (process.env.APPDATA) {
+            return path.join(process.env.APPDATA, 'Automatizador Bravo');
+        }
         return path.join(process.cwd(), 'app');
     }
 

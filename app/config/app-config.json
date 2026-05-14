@@ -3,6 +3,7 @@
   "defaultRetries": 3,
   "actionDelay": 1000,
   "headless": true,
+  "dashboardDefaultYearMode": "current",
   "schedulerEnabled": false,
   "presets": [
     {
@@ -764,7 +765,7 @@
         {
           "type": "fillDateRange",
           "selector": "#dataIni,#dataFim",
-          "value": "[MES_ATUAL]",
+          "value": "[PERIODO:2026-02]",
           "continueOnError": false,
           "skipStep": false
         },
@@ -789,7 +790,7 @@
         "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-01-28T15:56:23.142Z",
-      "lastUsedAt": "2026-03-10T17:54:56.946Z",
+      "lastUsedAt": "2026-04-01T13:32:04.330Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -799,7 +800,7 @@
           "12:30",
           "18:30"
         ],
-        "nextRun": "2026-02-25T15:30:00.000Z",
+        "nextRun": "2026-04-01T15:30:00.000Z",
         "compensationPolicy": "skip",
         "maxCompensationDelay": 24
       }
@@ -1550,7 +1551,7 @@
         "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-02-02T12:34:27.670Z",
-      "lastUsedAt": "2026-03-05T15:46:39.278Z",
+      "lastUsedAt": "2026-03-31T16:19:36.728Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -1560,7 +1561,7 @@
           "13:00",
           "19:00"
         ],
-        "nextRun": "2026-02-25T16:00:00.000Z",
+        "nextRun": "2026-03-31T22:00:00.000Z",
         "compensationPolicy": "skip",
         "maxCompensationDelay": 24
       }
@@ -1572,8 +1573,8 @@
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,
-      "user": "ss:7631302aefd850627a7a7817118f9066ef197ff4befb899a63d35436cec976af66aba2d04e98322a6976e8ba7347f13545d76a75480d0a2f634b349fd81554",
-      "pass": "ss:7631308eceee6649964a636632ef66aad517192d16a333f1968b6b2f76eab70ca29bd736f0b0bd136c22adf0163d11934e3a",
+      "user": "ss:763130c34b43f57cd4f25e39f9978faa99a5dc3141f10f5a8b3891c4ee60f7423d4ec5be3f0f1f4a76c6709ce607697f0ed73c551d632df51b57a50ca04897",
+      "pass": "ss:763130290c2291e9f509facca18084092a7bf2d0d6088230d1477659f8a7efb4cd330d754e4ada1ad3c4eac54fb0aa9e61c4",
       "authType": "login",
       "clientId": "",
       "clientSecret": "",

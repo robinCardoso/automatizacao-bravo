@@ -12,6 +12,7 @@ import { validateSnapshotIdentity } from '../../policy/snapshot/SnapshotGate';
 import { automationLogger } from '../../config/logger';
 import { ExcelUtils } from '../utils/ExcelUtils';
 import { AppPaths } from '../utils/AppPaths';
+import { PerformanceMonitor } from '../utils/PerformanceMonitor';
 
 
 export type DiffResult = {
@@ -244,6 +245,7 @@ export class DiffEngine {
    * @param customPrimaryKeys Colunas customizadas para comparação (opcional)
    */
   async run(siteId: string, identity: SnapshotIdentity, newDownloadPath: string, customBase?: string, customPrimaryKeys?: string[]): Promise<DiffResult> {
+    const perf = new PerformanceMonitor(`diff:${identity.tipo}:${identity.uf}`);
     automationLogger.info(`[DiffEngine] Analisando: ${identity.tipo} (${identity.period}_${identity.uf})`);
 
     const baseDir = customBase || snapshotPath(siteId, '');
@@ -354,14 +356,17 @@ export class DiffEngine {
       }).join('::');
     };
 
-    const nextSignatures = nextRows.map(row => buildSignature(row));
-    const nextSet = new Set(nextSignatures);
-
-    const prevSignatures = prevRows.map(row => buildSignature(row));
-    const prevSet = new Set(prevSignatures);
+    const nextSet = new Set<string>();
+    for (const row of nextRows) nextSet.add(buildSignature(row));
+    const prevSet = new Set<string>();
+    const prevMap = new Map<string, any>();
+    for (const row of prevRows) {
+      const sig = buildSignature(row);
+      prevSet.add(sig);
+      if (!prevMap.has(sig)) prevMap.set(sig, row);
+    }
 
     // 6. Detecta Removidos e Adicionados
-    const prevMap = new Map(prevRows.map(row => [buildSignature(row), row]));
     const removedSignatures = [...prevSet].filter(sig => !nextSet.has(sig));
     const removedRowsWithContext = removedSignatures.map(sig => {
       const originalRow = prevMap.get(sig);
@@ -413,7 +418,10 @@ export class DiffEngine {
       }
     }
 
-    const addedCount = [...nextSet].filter(sig => !prevSet.has(sig)).length;
+    let addedCount = 0;
+    for (const sig of nextSet) {
+      if (!prevSet.has(sig)) addedCount++;
+    }
 
     // 6.1 Filtra removidas por período: só linhas com data no período atual contam como removidas (não marcar JAN como removido no run de FEV)
     let removedInPeriod = removedRowsWithContext;
@@ -451,7 +459,7 @@ export class DiffEngine {
       const delWs = XLSX.utils.json_to_sheet(totalDeletedRows);
       const delWb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(delWb, delWs, "Deletados_SSP");
-      XLSX.writeFile(delWb, files.deleted);
+      XLSX.writeFile(delWb, files.deleted, { compression: true });
     }
 
     // 7.1 Backup do CURRENT antes de sobrescrever (origem inconstante: permite restauração se o novo estiver errado)
@@ -481,10 +489,62 @@ export class DiffEngine {
 
     // 8. Salva o novo CURRENT (LIMPO e REGENERADO)
     // Ao invés de salvar o workbook original (que pode ter lixo), salvamos os dados filtrados
-    const newWs = XLSX.utils.json_to_sheet(nextRows);
-    const newWb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(newWb, newWs, "Current_SSP");
-    XLSX.writeFile(newWb, files.current);
+    // NOVO: Preservação de data por registro
+    const now = new Date().toISOString();
+    let hasActualDataChange = false;
+    
+    const finalNextRows = nextRows.map(row => {
+        const sig = buildSignature(row);
+        const prevRow = prevMap.get(sig);
+        
+        // Se já existia, mantém a data original. Se é novo, ganha a data de agora.
+        const originalDate = prevRow?.ssp_data_processamento || prevRow?.DATA_PROCESSAMENTO_ORIGINAL;
+        const rowDate = originalDate || now;
+        
+        if (!originalDate) hasActualDataChange = true; // Novo registro detectado
+
+        return {
+            ...row,
+            ssp_data_processamento: rowDate
+        };
+    });
+
+    // Se houver remoções, houve mudança
+    if (removedInPeriod.length > 0) hasActualDataChange = true;
+
+    // Se não houve mudança detectada via PK, fazemos um check de sanidade no conteúdo
+    if (!hasActualDataChange && prevRows.length === nextRows.length) {
+        // Verifica se algum valor mudou em registros existentes
+        for (let i = 0; i < finalNextRows.length; i++) {
+            const nextRow = finalNextRows[i];
+            const sig = buildSignature(nextRow);
+            const prevRow = prevMap.get(sig);
+            
+            if (!prevRow) { hasActualDataChange = true; break; }
+            
+            // Compara colunas (ignorando metadados ssp_)
+            const keys = Object.keys(nextRow).filter(k => !k.startsWith('ssp_'));
+            for (const k of keys) {
+                if (String(nextRow[k]) !== String(prevRow[k])) {
+                    hasActualDataChange = true;
+                    break;
+                }
+            }
+            if (hasActualDataChange) break;
+        }
+    } else {
+        hasActualDataChange = true;
+    }
+
+    if (hasActualDataChange || !fs.existsSync(files.current)) {
+        automationLogger.info(`[DiffEngine] Aplicando mudanças no snapshot CURRENT (${nextRows.length} linhas).`);
+        const newWs = XLSX.utils.json_to_sheet(finalNextRows);
+        const newWb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(newWb, newWs, "Current_SSP");
+        XLSX.writeFile(newWb, files.current, { compression: true });
+    } else {
+        automationLogger.info(`[DiffEngine] Nenhuma mudança detectada nos dados. Snapshot mantido intocado.`);
+    }
 
     // 9. Gera META atualizado
     const meta: SnapshotMeta = {
@@ -493,8 +553,8 @@ export class DiffEngine {
         period: identity.period,
         uf: identity.uf
       },
-      lastUpdated: new Date().toISOString(),
-      schemaVersion: "1.1 (Auto-Convert)",
+      lastUpdated: hasActualDataChange ? now : (JSON.parse(fs.readFileSync(files.meta, 'utf-8')).lastUpdated || now),
+      schemaVersion: "1.2 (Row-Level History)",
       primaryKeyUsed: primaryKeys,
       rowCount: nextRows.length,
       checksum: this.calculateHash(files.current)
@@ -502,13 +562,15 @@ export class DiffEngine {
 
     fs.writeFileSync(files.meta, JSON.stringify(meta, null, 2));
 
-    return {
+    const result = {
       removed: newlyDeletedFiltered.length,
       added: addedCount,
       currentRows: nextRows.length,
       deletedFile: files.deleted,
       metaFile: files.meta
     };
+    perf.done({ nextRows: nextRows.length, prevRows: prevRows.length, removed: result.removed, added: result.added, changed: hasActualDataChange });
+    return result;
   }
 
   private calculateHash(filePath: string): string {

@@ -153,11 +153,13 @@ window.saveConfig = async () => {
     try {
         const config = await window.electronAPI.getConfig();
         const elHeadless = document.getElementById('cfgHeadless');
+        const elDashboardMode = document.getElementById('cfgDashboardDefaultYearMode');
         const elDelay = document.getElementById('actionDelay');
         const elTimeout = document.getElementById('timeout');
         const elRetries = document.getElementById('maxRetries');
 
         if (elHeadless) config.headless = elHeadless.checked;
+        if (elDashboardMode) config.dashboardDefaultYearMode = elDashboardMode.value || 'current';
         if (elDelay) config.actionDelay = parseInt(elDelay.value);
         if (elTimeout) config.defaultTimeout = parseInt(elTimeout.value) * 1000;
         if (elRetries) config.defaultRetries = parseInt(elRetries.value);

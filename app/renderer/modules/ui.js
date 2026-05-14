@@ -245,18 +245,20 @@ export const UI = {
 
         // Gatilho para atualizar o Dashboard real se estiver visível
         if (Dashboard && document.getElementById('view-dashboard').classList.contains('active-view')) {
-            Dashboard.loadDashboard();
+            Dashboard.loadDashboard(true);
         }
     },
     async loadConfigToUI() {
         try {
             const config = await window.electronAPI.getConfig();
             const elHeadless = document.getElementById('cfgHeadless');
+            const elDashboardMode = document.getElementById('cfgDashboardDefaultYearMode');
             const elDelay = document.getElementById('actionDelay');
             const elTimeout = document.getElementById('timeout');
             const elRetries = document.getElementById('maxRetries');
 
             if (elHeadless) elHeadless.checked = config.headless !== false;
+            if (elDashboardMode) elDashboardMode.value = config.dashboardDefaultYearMode || 'current';
             if (elDelay) elDelay.value = config.actionDelay || 1000;
             if (elTimeout) elTimeout.value = (config.defaultTimeout || 30000) / 1000;
             if (elRetries) elRetries.value = config.defaultRetries || 3;

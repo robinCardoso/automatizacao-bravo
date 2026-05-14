@@ -72,8 +72,13 @@
     },
     "files": [
       "dist/**/*",
-      "node_modules/**/*",
-      "package.json"
+      "package.json",
+      "!node_modules/{typescript,electron,ts-node,@playwright/test}/**/*",
+      "!**/*.{ts,map}",
+      "!release/**/*",
+      "!docs/**/*",
+      "!snapshots/**/*",
+      "!.git/**/*"
     ],
     "extraResources": [
       {
@@ -118,24 +123,5 @@
     "winston-daily-rotate-file": "^5.0.0",
     "xlsx": "^0.18.5",
     "zod": "^4.3.6"
-  },
-  "win": {
-    "target": [
-      {
-        "target": "zip",
-        "arch": [
-          "x64"
-        ]
-      },
-      {
-        "target": "nsis",
-        "arch": [
-          "x64"
-        ]
-      }
-    ],
-    "icon": "build/icon.ico",
-    "requestedExecutionLevel": "asInvoker",
-    "sign": false
   }
 }

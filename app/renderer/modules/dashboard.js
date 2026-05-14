@@ -12,6 +12,11 @@ export const Dashboard = {
     },
 
     activeChartSubmenu: 1,
+    _loadDebounceTimer: null,
+    _loadSeq: 0,
+    _defaultYearApplied: false,
+    _baseDataByType: {},
+    _localResultCache: new Map(),
 
     switchChartSubmenu(num) {
         this.activeChartSubmenu = num;
@@ -44,7 +49,7 @@ export const Dashboard = {
         if (targetView) targetView.classList.add('active-view');
 
         if (viewId === 'dashboard') {
-            this.loadDashboard();
+            this.scheduleLoadDashboard();
         }
     },
 
@@ -84,7 +89,7 @@ export const Dashboard = {
         const activeBtn = document.getElementById(`btnType${type}`);
         if (activeBtn) activeBtn.classList.add('active');
 
-        this.loadDashboard();
+        this.scheduleLoadDashboard();
     },
 
     openUnknownRefsModal() {
@@ -129,39 +134,67 @@ export const Dashboard = {
     /**
      * Carrega os dados do dashboard do backend
      */
-    async loadDashboard() {
-        const loadingOverlay = document.getElementById('dashLoadingOverlay');
-        try {
-            if (loadingOverlay) loadingOverlay.style.display = 'flex';
-            
-            // Permite que o DOM seja atualizado com o "Loading" antes da thread do backend travar
-            await new Promise(resolve => setTimeout(resolve, 50));
+    scheduleLoadDashboard(delay = 350) {
+        if (this._loadDebounceTimer) clearTimeout(this._loadDebounceTimer);
+        this._loadDebounceTimer = setTimeout(() => this.loadDashboard(), delay);
+    },
 
+    async loadDashboard(forceBaseReload = false) {
+        const loadingOverlay = document.getElementById('dashLoadingOverlay');
+        const requestSeq = ++this._loadSeq;
+        try {
             const reportType = document.getElementById('dashReportType').value;
-            const year = document.getElementById('dashYearFilter')?.value || "";
+            const yearEl = document.getElementById('dashYearFilter');
+            let year = yearEl?.value || "";
             const month = document.getElementById('dashMonthFilter')?.value || "";
+            const config = await window.electronAPI.getConfig();
+            const dashboardYearMode = config.dashboardDefaultYearMode || 'current';
+
+            // Primeira carga: por configuracao, inicia no ano atual (rapido) ou em todos.
+            if (!year && !this._defaultYearApplied && dashboardYearMode === 'current') {
+                year = String(new Date().getFullYear());
+                this._defaultYearApplied = true;
+            }
 
             const brand = document.getElementById('dashBrandFilter')?.value || "";
             const customer = document.getElementById('dashCustomerFilter')?.value || "";
             const group = document.getElementById('dashGroupFilter')?.value || "";
             const subGroup = document.getElementById('dashSubGroupFilter')?.value || "";
+            const filters = { year, month, brand, customer, group, subGroup };
 
             // Precisamos descobrir o diretório de destino a partir das configurações
-            const config = await window.electronAPI.getConfig();
             const destinationDir = config.reportsDir || 'relatorios';
+            const hasBase = !!this._baseDataByType[reportType];
+            const canUseLocal = hasBase && !forceBaseReload;
+            let data;
 
-            Utils.log(`[Dashboard] Carregando dados de ${reportType} (Ano: ${year || 'Todos'}, Mês: ${month || 'Todos'})...`);
-
-            const options = {};
-            if (year) options.year = year;
-            if (month) options.month = month;
-            if (brand) options.brand = brand;
-            if (customer) options.customer = customer;
-            if (group) options.group = group;
-            if (subGroup) options.subGroup = subGroup;
-
-            const data = await window.electronAPI.getDashboardData(reportType, destinationDir, options);
-            this.currentData = data;
+            if (canUseLocal) {
+                data = this.applyLocalFilters(reportType, filters);
+                if (requestSeq !== this._loadSeq) return;
+                this.currentData = data;
+            } else {
+                if (loadingOverlay) loadingOverlay.style.display = 'flex';
+                // Permite que o DOM seja atualizado com o loading antes do backend pesado
+                await new Promise(resolve => setTimeout(resolve, 50));
+                Utils.log(`[Dashboard] Carregando dados-base de ${reportType} (Ano: ${year || 'Todos'}, Mês: ${month || 'Todos'})...`);
+                const options = { __includeBase: true };
+                const base = await window.electronAPI.getDashboardData(reportType, destinationDir, options);
+                if (requestSeq !== this._loadSeq) return;
+                if (base?.baseRows?.length) {
+                    this._baseDataByType[reportType] = {
+                        rows: base.baseRows,
+                        mappingUsed: base.mappingUsed || {},
+                        sourceFile: base.sourceFile || '',
+                        unknownRefs: base.unknownRefs || [],
+                        lastUpdate: base.summary?.lastUpdate || new Date().toISOString()
+                    };
+                    this._localResultCache.clear();
+                    data = this.applyLocalFilters(reportType, filters);
+                } else {
+                    data = base;
+                }
+                this.currentData = data;
+            }
 
             if (!data) {
                 const msg = reportType === 'PEDIDO' ? 'Arquivo Master não encontrado. Execute a automação.' : 'Sem dados';
@@ -169,7 +202,11 @@ export const Dashboard = {
                 return;
             }
 
-            Utils.log(`[Dashboard] Dados carregados com sucesso de: ${data.sourceFile}`);
+            Utils.log(`[Dashboard] Dados carregados com sucesso de: ${data.sourceFile || this._baseDataByType[reportType]?.sourceFile || '-'}`);
+            if (data.indexRebuilt) {
+                Utils.log('[Dashboard] Reindexacao concluida. As proximas cargas ficarao mais rapidas.');
+                Utils.showNotification('Indice do dashboard atualizado. Proximas consultas mais rapidas.', 'info');
+            }
 
             // Atualiza o seletor de Anos e Meses
             this.updateYearFilter(data.availableMonths, year);
@@ -202,6 +239,151 @@ export const Dashboard = {
         } finally {
             if (loadingOverlay) loadingOverlay.style.display = 'none';
         }
+    },
+
+    applyLocalFilters(reportType, filters) {
+        const base = this._baseDataByType[reportType];
+        if (!base || !Array.isArray(base.rows)) return null;
+
+        const cacheKey = `${reportType}:${JSON.stringify(filters || {})}`;
+        if (this._localResultCache.has(cacheKey)) {
+            return this._localResultCache.get(cacheKey);
+        }
+
+        const rows = base.rows;
+        const monthsSet = new Set();
+        const brandsSet = new Set();
+        const customersSet = new Set();
+        const groupsSet = new Set();
+        const subGroupsSet = new Set();
+
+        const dateMap = new Map();
+        const groupMap = new Map();
+        const categoryMap = new Map();
+        const brandMap = new Map();
+        const ufMap = new Map();
+        const associadoMap = new Map();
+        const monthlyTotals = new Map();
+
+        const selectedYear = filters?.year || '';
+        const selectedMonth = filters?.month || '';
+
+        for (const row of rows) {
+            const rowMonth = row.month || '';
+            if (rowMonth) monthsSet.add(rowMonth);
+            if (row.brand) brandsSet.add(String(row.brand));
+            if (row.customer) customersSet.add(String(row.customer));
+            if (row.group) groupsSet.add(String(row.group));
+            if (row.subGroup) subGroupsSet.add(String(row.subGroup));
+
+            if (filters?.brand && String(row.brand) !== String(filters.brand)) continue;
+            if (filters?.customer && String(row.customer) !== String(filters.customer)) continue;
+            if (filters?.group && String(row.group) !== String(filters.group)) continue;
+            if (filters?.subGroup && String(row.subGroup) !== String(filters.subGroup)) continue;
+
+            if (rowMonth) {
+                if (!monthlyTotals.has(rowMonth)) monthlyTotals.set(rowMonth, { value: 0, records: 0 });
+                const m = monthlyTotals.get(rowMonth);
+                m.value += Number(row.value) || 0;
+                m.records += 1;
+            }
+
+            const isCurrentMonth = selectedMonth && rowMonth === selectedMonth;
+            const isCurrentYear = selectedYear && rowMonth?.startsWith(selectedYear + '-');
+            const isTarget = selectedMonth ? isCurrentMonth : (selectedYear ? isCurrentYear : true);
+            if (!isTarget) continue;
+
+            const val = Number(row.value) || 0;
+            if (rowMonth) dateMap.set(rowMonth, (dateMap.get(rowMonth) || 0) + val);
+            if (row.group) groupMap.set(row.group, (groupMap.get(row.group) || 0) + val);
+            if (row.category) categoryMap.set(row.category, (categoryMap.get(row.category) || 0) + val);
+            if (row.brand) brandMap.set(row.brand, (brandMap.get(row.brand) || 0) + val);
+            if (row.uf) ufMap.set(row.uf, (ufMap.get(row.uf) || 0) + val);
+            if (row.associado) associadoMap.set(row.associado, (associadoMap.get(row.associado) || 0) + val);
+        }
+
+        let currentPeriodVal = 0;
+        let prevPeriodVal = 0;
+        let currentPeriodRec = 0;
+        let prevPeriodRec = 0;
+
+        if (selectedMonth) {
+            const [y, m] = selectedMonth.split('-').map(Number);
+            const d = new Date(y, m - 2, 1);
+            const prevMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            const cur = monthlyTotals.get(selectedMonth);
+            const prev = monthlyTotals.get(prevMonth);
+            currentPeriodVal = cur?.value || 0;
+            currentPeriodRec = cur?.records || 0;
+            prevPeriodVal = prev?.value || 0;
+            prevPeriodRec = prev?.records || 0;
+        } else if (selectedYear) {
+            const y = parseInt(selectedYear, 10);
+            const py = y - 1;
+            monthlyTotals.forEach((v, k) => {
+                const yr = parseInt(String(k).split('-')[0], 10);
+                if (yr === y) {
+                    currentPeriodVal += v.value;
+                    currentPeriodRec += v.records;
+                } else if (yr === py) {
+                    prevPeriodVal += v.value;
+                    prevPeriodRec += v.records;
+                }
+            });
+        } else {
+            const sortedMonths = Array.from(monthlyTotals.keys()).sort();
+            if (sortedMonths.length >= 2) {
+                const lastMonth = sortedMonths[sortedMonths.length - 1];
+                const penultMonth = sortedMonths[sortedMonths.length - 2];
+                currentPeriodVal = monthlyTotals.get(lastMonth)?.value || 0;
+                currentPeriodRec = monthlyTotals.get(lastMonth)?.records || 0;
+                prevPeriodVal = monthlyTotals.get(penultMonth)?.value || 0;
+                prevPeriodRec = monthlyTotals.get(penultMonth)?.records || 0;
+            }
+        }
+
+        const byValueDesc = (a, b) => b.value - a.value;
+        const totalValue = Array.from(dateMap.values()).reduce((acc, n) => acc + n, 0);
+        const totalRecords = Array.from(monthlyTotals.entries()).reduce((acc, [month, v]) => {
+            const inTarget = selectedMonth ? month === selectedMonth : (selectedYear ? String(month).startsWith(selectedYear + '-') : true);
+            return acc + (inTarget ? v.records : 0);
+        }, 0);
+
+        const result = {
+            type: reportType,
+            summary: {
+                totalValue,
+                totalRecords,
+                lastUpdate: base.lastUpdate || new Date().toISOString(),
+                valueGrowth: prevPeriodVal > 0 ? ((currentPeriodVal - prevPeriodVal) / prevPeriodVal) * 100 : 0,
+                recordGrowth: prevPeriodRec > 0 ? ((currentPeriodRec - prevPeriodRec) / prevPeriodRec) * 100 : 0
+            },
+            charts: {
+                byDate: Array.from(dateMap.entries()).map(([label, value]) => ({ label, value })).sort((a, b) => a.label.localeCompare(b.label)),
+                byGroup: Array.from(groupMap.entries()).map(([label, value]) => ({ label, value })).sort(byValueDesc),
+                byCategory: Array.from(categoryMap.entries()).map(([label, value]) => ({ label, value })).sort(byValueDesc).slice(0, 15),
+                byBrand: Array.from(brandMap.entries()).map(([label, value]) => ({ label, value })).sort(byValueDesc).slice(0, 20),
+                byUF: Array.from(ufMap.entries()).map(([label, value]) => ({ label, value })).sort(byValueDesc).slice(0, 20),
+                byAssociado: Array.from(associadoMap.entries()).map(([label, value]) => ({ label, value })).sort(byValueDesc).slice(0, 20)
+            },
+            availableMonths: Array.from(monthsSet).sort().reverse(),
+            availableFilters: {
+                brands: Array.from(brandsSet).sort(),
+                customers: Array.from(customersSet).sort(),
+                groups: Array.from(groupsSet).sort(),
+                subGroups: Array.from(subGroupsSet).sort()
+            },
+            mappingUsed: base.mappingUsed || {},
+            sourceFile: base.sourceFile || '',
+            unknownRefs: base.unknownRefs || []
+        };
+
+        this._localResultCache.set(cacheKey, result);
+        if (this._localResultCache.size > 100) {
+            const firstKey = this._localResultCache.keys().next().value;
+            if (firstKey) this._localResultCache.delete(firstKey);
+        }
+        return result;
     },
 
     updateYearFilter(availableMonths, selectedYear) {
@@ -339,7 +521,7 @@ export const Dashboard = {
                 list.querySelectorAll('.dash-combobox-option').forEach(o => o.classList.remove('selected'));
                 opt.classList.add('selected');
                 close();
-                this.loadDashboard();
+                this.scheduleLoadDashboard();
             });
         });
 
@@ -392,7 +574,7 @@ export const Dashboard = {
                         disp.placeholder = disp.getAttribute('data-placeholder') || 'Buscar...';
                     }
                 }
-                this.loadDashboard();
+                this.scheduleLoadDashboard();
             });
             container.appendChild(pill);
         });
@@ -449,12 +631,30 @@ export const Dashboard = {
 
     renderCharts(chartsData, categoryLabel) {
         const catLabel = categoryLabel || 'Categoria';
+        
+        // Configuração global de fontes para o Chart.js
+        Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.9)';
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.titleFont = { size: 13, weight: 'bold' };
+        Chart.defaults.plugins.tooltip.bodyFont = { size: 12 };
+
         this.renderLineChart('chartDate', chartsData.byDate || [], 'Evolução de Volume');
-        this.renderBarChart('chartGroup', chartsData.byGroup || [], 'Volume por Grupo', 'rgba(54, 162, 235, 0.7)', 'group', { indexAxis: 'y', wrapperId: 'chartGroupWrap', visibleBars: 4 });
+        this.renderBarChart('chartGroup', chartsData.byGroup || [], 'Volume por Grupo', ['#3b82f6', '#2563eb'], 'group', { indexAxis: 'y', wrapperId: 'chartGroupWrap', visibleBars: 4 });
         this.renderHorizontalBarChart('chartCategory', chartsData.byCategory || [], `Top Categorias (${catLabel})`);
-        this.renderBarChart('chartBrand', chartsData.byBrand || [], 'Volume por Marca', 'rgba(153, 102, 255, 0.7)', 'brand');
-        this.renderBarChart('chartUF', chartsData.byUF || [], 'Volume por UF', 'rgba(255, 159, 64, 0.7)', 'uf', { indexAxis: 'y', wrapperId: 'chartUFWrap', visibleBars: 4 });
+        this.renderBarChart('chartBrand', chartsData.byBrand || [], 'Volume por Marca', ['#8b5cf6', '#6d28d9'], 'brand');
+        this.renderBarChart('chartUF', chartsData.byUF || [], 'Volume por UF', ['#f59e0b', '#d97706'], 'uf', { indexAxis: 'y', wrapperId: 'chartUFWrap', visibleBars: 4 });
         this.renderClientChartAndTable(chartsData.byAssociado || []);
+    },
+
+    _createGradient(ctx, colors, vertical = true) {
+        const chartArea = ctx.canvas.getBoundingClientRect();
+        const gradient = ctx.createLinearGradient(0, 0, vertical ? 0 : chartArea.width, vertical ? chartArea.height : 0);
+        gradient.addColorStop(0, colors[0]);
+        gradient.addColorStop(1, colors[1]);
+        return gradient;
     },
 
     renderLineChart(canvasId, data, label) {
@@ -462,6 +662,11 @@ export const Dashboard = {
         if (!el) return;
         if (this.charts.date) this.charts.date.destroy();
         const ctx = el.getContext('2d');
+        
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)');
+        gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+
         this.charts.date = new Chart(ctx, {
             type: 'line',
             data: {
@@ -469,8 +674,14 @@ export const Dashboard = {
                 datasets: [{
                     label: label,
                     data: data.map(d => d.value),
-                    borderColor: '#3498db',
-                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    borderColor: '#3b82f6',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#3b82f6',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    backgroundColor: gradient,
                     fill: true,
                     tension: 0.4
                 }]
@@ -478,41 +689,54 @@ export const Dashboard = {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { bottom: 24, left: 8, right: 8 } },
-                plugins: { legend: { display: false } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => this.formatVolume(context.raw)
+                        }
+                    }
+                },
                 scales: {
                     x: {
-                        ticks: {
-                            maxTicksLimit: 12,
-                            maxRotation: 45,
-                            minRotation: 45,
-                            font: { size: 10 }
-                        }
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: '500' } }
                     },
                     y: {
-                        ticks: { font: { size: 10 } }
+                        border: { dash: [4, 4] },
+                        grid: { color: 'rgba(226, 232, 240, 0.8)' },
+                        ticks: {
+                            font: { size: 10 },
+                            callback: (value) => 'R$ ' + value.toLocaleString('pt-BR', { notation: 'compact' })
+                        }
                     }
                 }
             }
         });
     },
 
-    renderBarChart(canvasId, data, label, color, chartKey, opts = {}) {
+    renderBarChart(canvasId, data, label, colors, chartKey, opts = {}) {
         const el = document.getElementById(canvasId);
         if (!el) return;
         const key = chartKey || 'group';
         if (this.charts[key]) this.charts[key].destroy();
         const horizontal = opts.indexAxis === 'y';
-        const barHeightPx = 28;
+        const barHeightPx = 32;
         const visibleBars = opts.visibleBars != null ? opts.visibleBars : 0;
         const wrapId = opts.wrapperId;
+
         if (horizontal && wrapId && visibleBars > 0) {
             const wrap = document.getElementById(wrapId);
-            const minHeight = 120;
-            const chartHeight = data.length > 0 ? Math.max(minHeight, data.length * barHeightPx + 80) : minHeight;
+            const minHeight = 150;
+            const chartHeight = data.length > 0 ? Math.max(minHeight, data.length * barHeightPx + 60) : minHeight;
             if (wrap) wrap.style.height = `${chartHeight}px`;
         }
+
         const ctx = el.getContext('2d');
+        const gradient = ctx.createLinearGradient(0, 0, horizontal ? 400 : 0, horizontal ? 0 : 400);
+        gradient.addColorStop(0, colors[0]);
+        gradient.addColorStop(1, colors[1]);
+
         this.charts[key] = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -520,24 +744,35 @@ export const Dashboard = {
                 datasets: [{
                     label: label,
                     data: data.map(d => d.value),
-                    backgroundColor: color,
-                    borderRadius: 6
+                    backgroundColor: gradient,
+                    hoverBackgroundColor: colors[1],
+                    borderRadius: 8,
+                    borderSkipped: false,
+                    barThickness: horizontal ? 18 : 'flex',
+                    maxBarThickness: 30
                 }]
             },
             options: {
                 indexAxis: horizontal ? 'y' : 'x',
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: horizontal ? { padding: { left: 4, right: 8 } } : {},
-                plugins: { legend: { display: false } },
-                scales: horizontal ? {
-                    x: { ticks: { font: { size: 10 } } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => this.formatVolume(context.raw)
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 10, weight: '500' } }
+                    },
                     y: {
+                        grid: { display: false },
                         ticks: { font: { size: 10 }, autoSkip: false }
                     }
-                } : {
-                    x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 0 } },
-                    y: { ticks: { font: { size: 10 } } }
                 }
             }
         });
@@ -690,7 +925,7 @@ export const Dashboard = {
 
                 // Suggest reload
                 if (confirm('Deseja recarregar o painel para refletir as mudanças?')) {
-                    this.loadDashboard();
+                    this.scheduleLoadDashboard();
                 }
             } else {
                 alert(`❌ Erro ao salvar: ${result.error}`);
@@ -780,7 +1015,7 @@ export const Dashboard = {
                     this.openUnknownRefsModal(); // Refresh modal
 
                     if (confirm('Deseja recarregar o painel para refletir as mudanças?')) {
-                        this.loadDashboard();
+                        this.scheduleLoadDashboard();
                     }
                 } else {
                     alert(`❌ Erro ao importar: ${result.error}`);
@@ -795,3 +1030,50 @@ export const Dashboard = {
         }
     }
 };
+
+// Listener para atualização em tempo real
+if (window.electronAPI && window.electronAPI.onMasterConsolidated) {
+    window.electronAPI.onMasterConsolidated((data) => {
+        const reportType = document.getElementById('dashReportType')?.value;
+        if (data.type === reportType) {
+            // Se estiver no dashboard e o tipo for o mesmo, mostra aviso ou recarrega
+            Utils.log(`[Dashboard] Novos dados de ${data.type} detectados em: ${data.file}`);
+            
+            // Adiciona um botão/banner temporário se o usuário estiver na aba do dashboard
+            const dashboardView = document.getElementById('view-dashboard');
+            if (dashboardView && dashboardView.classList.contains('active-view')) {
+                const bannerId = 'dashUpdateBanner';
+                if (!document.getElementById(bannerId)) {
+                    const banner = document.createElement('div');
+                    banner.id = bannerId;
+                    banner.style = "position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: #3498db; color: white; padding: 12px 24px; border-radius: 50px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); z-index: 10000; display: flex; align-items: center; gap: 15px; font-weight: 600; font-size: 13px; border: 2px solid rgba(255,255,255,0.2);";
+                    banner.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 18px;">🔄</span>
+                            <span>Dados atualizados disponíveis!</span>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="premium-btn primary" onclick="Dashboard.loadDashboard(true); this.closest('#dashUpdateBanner').remove();" 
+                                style="padding: 6px 16px; font-size: 11px; margin: 0; background: #fff; color: #3498db; border: none;">ATUALIZAR AGORA</button>
+                            <button onclick="this.closest('#dashUpdateBanner').remove()" 
+                                style="background: none; border: none; color: white; cursor: pointer; font-size: 20px; padding: 0 5px;">&times;</button>
+                        </div>
+                    `;
+                    dashboardView.appendChild(banner);
+                    
+                    // Auto-remove após 1 minuto para não poluir
+                    setTimeout(() => {
+                        if (banner.parentElement) banner.remove();
+                    }, 60000);
+                }
+            } else {
+                // Se não estiver no dashboard, apenas limpa o cache local para a próxima vez que ele entrar
+                Dashboard._baseDataByType[data.type] = null;
+                Dashboard._localResultCache.clear();
+            }
+        } else {
+            // Limpa o cache de outros tipos se forem atualizados
+            Dashboard._baseDataByType[data.type] = null;
+        }
+    });
+}

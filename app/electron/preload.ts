@@ -59,6 +59,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('automation-error', (_event, error) => callback(error)),
   onSiteComplete: (callback: (result: any) => void) =>
     ipcRenderer.on('site-complete', (_event, result) => callback(result)),
+  onMasterConsolidated: (callback: (data: any) => void) =>
+    ipcRenderer.on('master-consolidated', (_event, data) => callback(data)),
   onUpdateAvailable: (callback: (info: { version: string }) => void) =>
     ipcRenderer.on('update-available', (_event, info) => callback(info)),
   onUpdateDownloaded: (callback: (info: { version: string }) => void) =>

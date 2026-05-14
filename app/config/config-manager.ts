@@ -160,6 +160,7 @@ const AppConfigSchema = z.object({
   defaultRetries: z.number().default(3),
   actionDelay: z.number().default(1000),
   headless: z.boolean().default(true),
+  dashboardDefaultYearMode: z.enum(['current', 'all']).default('current'),
   schedulerEnabled: z.boolean().default(true),
   googleDrivePath: z.string().optional(),
   presets: z.array(PresetSchema).default([]),
@@ -177,13 +178,21 @@ const AppConfigSchema = z.object({
     showLogo: true,
     compactLayout: false
   }),
+  automation: z.object({
+    enableSmartRetry: z.boolean().default(true),
+    maxRetryPasses: z.number().default(1),
+    retryDelayMinutes: z.number().default(5),
+  }).default({
+    enableSmartRetry: true,
+    maxRetryPasses: 1,
+    retryDelayMinutes: 5,
+  }),
 });
 
 export type SiteConfig = z.infer<typeof SiteConfigSchema>;
 export type AppConfig = z.infer<typeof AppConfigSchema>;
 
 import { AppPaths } from '../core/utils/AppPaths';
-import { app } from 'electron';
 
 export interface SchemaMap {
   primaryKey: string[];
@@ -328,6 +337,7 @@ export class ConfigManager {
           defaultRetries: 3,
           actionDelay: 1000,
           headless: false,
+          dashboardDefaultYearMode: 'current',
           schedulerEnabled: true,
           presets: [],
           notifications: {
@@ -335,6 +345,11 @@ export class ConfigManager {
             retryAttempts: 3,
             showLogo: true,
             compactLayout: false
+          },
+          automation: {
+            enableSmartRetry: true,
+            maxRetryPasses: 1,
+            retryDelayMinutes: 5
           }
         };
         this.saveConfig(defaultConfig);
@@ -590,7 +605,16 @@ export class ConfigManager {
 
   private loadSchemaMaps() {
     try {
-      const basePath = (app && app.isPackaged) ? process.resourcesPath : process.cwd();
+      let isPackaged = false;
+      try {
+        // Worker thread pode nao ter modulo electron disponivel.
+        const electron = require('electron');
+        isPackaged = !!electron?.app?.isPackaged;
+      } catch {
+        isPackaged = false;
+      }
+
+      const basePath = isPackaged ? process.resourcesPath : process.cwd();
       const schemaPath = path.join(basePath, 'data', 'schemaMaps.json');
 
       if (fs.existsSync(schemaPath)) {

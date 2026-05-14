@@ -2,13 +2,13 @@ import { app, BrowserWindow, ipcMain, shell, Menu, Tray, nativeImage } from 'ele
 import { autoUpdater } from 'electron-updater';
 import * as path from 'path';
 import * as fs from 'fs';
+import { Worker } from 'worker_threads';
 import { configManager } from '../config/config-manager';
 import { presetRepository } from '../automation/engine/preset-repository';
 import { automationEngine } from '../automation/engine/automation-engine';
 import { sessionManager } from '../automation/sessions/session-manager';
 import { schedulerService } from '../automation/engine/scheduler-service';
 import { notificationService } from '../core/notifications/NotificationService';
-import { dashboardService } from '../core/consolidation/DashboardService';
 import { AppPaths } from '../core/utils/AppPaths';
 import logger from '../config/logger';
 
@@ -16,6 +16,33 @@ import logger from '../config/logger';
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
+let activeDashboardWorker: Worker | null = null;
+
+function runHeavyTask<T>(payload: Record<string, unknown>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const workerPath = path.join(__dirname, '../core/workers/heavy-tasks.worker.js');
+    const worker = new Worker(workerPath, { workerData: payload });
+    worker.once('message', (msg: any) => {
+      if (msg?.ok) resolve(msg.result as T);
+      else reject(new Error(msg?.error || 'Falha no worker'));
+    });
+    worker.once('error', reject);
+    worker.once('exit', (code) => {
+      if (code !== 0) {
+        reject(new Error(`Worker finalizado com código ${code}`));
+      }
+    });
+  });
+}
+
+async function pathExists(targetPath: string): Promise<boolean> {
+  try {
+    await fs.promises.access(targetPath, fs.constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // ===== CONFIGURAÇÃO DE INICIALIZAÇÃO AUTOMÁTICA =====
 /**
@@ -104,8 +131,13 @@ function setupTray(): void {
 
 // ===== MONITOR DE MEMÓRIA (WATCHDOG) =====
 function startMemoryWatchdog(): void {
-  // Verifica a cada 1 hora
+  // Verifica a cada 30 minutos
   setInterval(() => {
+    // Força a coleta de lixo se a flag --expose_gc estiver ativa
+    if (global.gc) {
+      global.gc();
+    }
+
     const memoryUsage = process.memoryUsage();
     const rssMB = Math.round(memoryUsage.rss / 1024 / 1024);
 
@@ -114,8 +146,13 @@ function startMemoryWatchdog(): void {
     } else {
       logger.info(`[Watchdog] Saúde do sistema: RAM em ${rssMB}MB`);
     }
-  }, 1000 * 60 * 60);
+  }, 1000 * 60 * 30);
 }
+
+// Configurações Globais de Memória para o Electron
+app.commandLine.appendSwitch('js-flags', '--max-old-space-size=4096 --expose_gc');
+// Desativa a aceleração de hardware se o app for rodar muito tempo em background. Reduz drasticamente o uso de GPU e RAM.
+app.disableHardwareAcceleration();
 
 // Handlers de IPC
 function registerIpcHandlers(): void {
@@ -172,23 +209,24 @@ function registerIpcHandlers(): void {
     const allSites = configManager.getSites(); // Método legado que agrega sites de todos presets
     const userDataPath = path.join(app.getPath('userData'), 'automation-sessions');
 
-    return allSites.map((site: any) => {
+    const siteStatuses = await Promise.all(allSites.map(async (site: any) => {
       const sessionPath = path.join(userDataPath, site.id);
       return {
         siteId: site.id,
         siteName: site.name,
         uf: site.uf,
-        hasSession: fs.existsSync(sessionPath),
+        hasSession: await pathExists(sessionPath),
         path: sessionPath
       };
-    });
+    }));
+    return siteStatuses;
   });
 
   ipcMain.handle('delete-session', async (event, siteId) => {
     const userDataPath = path.join(app.getPath('userData'), 'automation-sessions');
     const sessionPath = path.join(userDataPath, siteId);
-    if (fs.existsSync(sessionPath)) {
-      fs.rmSync(sessionPath, { recursive: true, force: true });
+    if (await pathExists(sessionPath)) {
+      await fs.promises.rm(sessionPath, { recursive: true, force: true });
       return { success: true };
     }
     return { success: false };
@@ -204,7 +242,7 @@ function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('open-file', async (event, filePath) => {
-    if (fs.existsSync(filePath)) {
+    if (await pathExists(filePath)) {
       shell.openPath(filePath);
       return { success: true };
     }
@@ -214,9 +252,7 @@ function registerIpcHandlers(): void {
   ipcMain.handle('open-logs-folder', async () => {
     try {
       const logsDir = AppPaths.getLogsPath();
-      if (!fs.existsSync(logsDir)) {
-        fs.mkdirSync(logsDir, { recursive: true });
-      }
+      await fs.promises.mkdir(logsDir, { recursive: true });
       shell.openPath(logsDir);
       return { success: true };
     } catch (err: any) {
@@ -317,7 +353,33 @@ function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('get-dashboard-data', async (event, type, dest, options) => {
-    return await dashboardService.getDashboardStats(type, dest, options);
+    if (activeDashboardWorker) {
+      activeDashboardWorker.terminate().catch(() => undefined);
+      activeDashboardWorker = null;
+    }
+    const workerPath = path.join(__dirname, '../core/workers/heavy-tasks.worker.js');
+    activeDashboardWorker = new Worker(workerPath, {
+      workerData: { task: 'dashboard', type, destinationDir: dest, options }
+    });
+    return await new Promise((resolve, reject) => {
+      if (!activeDashboardWorker) return reject(new Error('Worker não inicializado'));
+      const currentWorker = activeDashboardWorker;
+      currentWorker.once('message', (msg: any) => {
+        activeDashboardWorker = null;
+        if (msg?.ok) resolve(msg.result);
+        else reject(new Error(msg?.error || 'Falha no dashboard worker'));
+      });
+      currentWorker.once('error', (error) => {
+        activeDashboardWorker = null;
+        reject(error);
+      });
+      currentWorker.once('exit', (code) => {
+        if (code !== 0) {
+          activeDashboardWorker = null;
+          reject(new Error(`Dashboard worker finalizado com código ${code}`));
+        }
+      });
+    });
   });
 
   ipcMain.handle('get-schema-maps', async () => {

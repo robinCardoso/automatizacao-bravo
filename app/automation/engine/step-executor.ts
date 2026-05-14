@@ -63,6 +63,14 @@ export class StepExecutor {
   }
 
   /**
+   * Retorna a instância da página Playwright (usado para diagnóstico)
+   */
+  getPage(): Page {
+    return this.page;
+  }
+
+
+  /**
    * Executa um único step
    */
   async executeStep(step: Step): Promise<void> {

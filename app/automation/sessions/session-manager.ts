@@ -17,10 +17,12 @@ async function ensurePlaywrightBrowsers(): Promise<void> {
 
   // MIGRACAO: Se o browser novo não existe mas o antigo existe, migra!
   const oldBrowsersPath = path.join(process.cwd(), 'app/storage/browsers');
-  if (!fs.existsSync(browsersPath) && fs.existsSync(oldBrowsersPath)) {
+  const browsersExists = await pathExists(browsersPath);
+  const oldBrowsersExists = await pathExists(oldBrowsersPath);
+  if (!browsersExists && oldBrowsersExists) {
     sessionLogger.info(`[MIGRAÇÃO] Detectado browsers no local antigo (${oldBrowsersPath}). Movendo para novo local...`);
-    fs.mkdirSync(path.dirname(browsersPath), { recursive: true });
-    fs.renameSync(oldBrowsersPath, browsersPath);
+    await fs.promises.mkdir(path.dirname(browsersPath), { recursive: true });
+    await fs.promises.rename(oldBrowsersPath, browsersPath);
     sessionLogger.info('[MIGRAÇÃO] Browsers movidos com sucesso para AppData');
   }
 
@@ -37,9 +39,7 @@ async function ensurePlaywrightBrowsers(): Promise<void> {
 
     try {
       // Cria a pasta de browsers se não existir
-      if (!fs.existsSync(browsersPath)) {
-        fs.mkdirSync(browsersPath, { recursive: true });
-      }
+      await fs.promises.mkdir(browsersPath, { recursive: true });
 
       sessionLogger.info(`Instalando browsers em: ${browsersPath}`);
 
@@ -67,6 +67,7 @@ async function ensurePlaywrightBrowsers(): Promise<void> {
 export class SessionManager {
   private profilesDir: string;
   private activeSessions: Map<string, BrowserContext> = new Map();
+  private initPromise: Promise<void>;
 
   constructor() {
     // Garante que os browsers do Playwright estejam disponíveis
@@ -78,20 +79,20 @@ export class SessionManager {
     this.profilesDir = AppPaths.getProfilesPath();
 
     // MIGRACAO: Se os perfis novos não existem mas os antigos existem, migra!
+    this.initPromise = this.initializeStorage();
+  }
+
+  private async initializeStorage(): Promise<void> {
     const oldProfilesDir = path.join(process.cwd(), 'app/storage/profiles');
-    if (!fs.existsSync(this.profilesDir) && fs.existsSync(oldProfilesDir)) {
+    if (!(await pathExists(this.profilesDir)) && await pathExists(oldProfilesDir)) {
       sessionLogger.info(`[MIGRAÇÃO] Detectado perfis no local antigo (${oldProfilesDir}). Movendo para novo local...`);
-      fs.mkdirSync(path.dirname(this.profilesDir), { recursive: true });
-      fs.renameSync(oldProfilesDir, this.profilesDir);
+      await fs.promises.mkdir(path.dirname(this.profilesDir), { recursive: true });
+      await fs.promises.rename(oldProfilesDir, this.profilesDir);
       sessionLogger.info('[MIGRAÇÃO] Perfis movidos com sucesso para AppData');
     }
 
-    this.ensureProfilesDir();
-  }
-
-  private ensureProfilesDir(): void {
-    if (!fs.existsSync(this.profilesDir)) {
-      fs.mkdirSync(this.profilesDir, { recursive: true });
+    if (!(await pathExists(this.profilesDir))) {
+      await fs.promises.mkdir(this.profilesDir, { recursive: true });
       sessionLogger.info(`Diretório de perfis criado: ${this.profilesDir}`);
     }
   }
@@ -101,6 +102,7 @@ export class SessionManager {
    * Utiliza 'launchPersistentContext' para manter cookies, cache e IndexedDB.
    */
   async getSession(siteId: string, headless: boolean = true): Promise<BrowserContext> {
+    await this.initPromise;
     // 1. Verifica se já existe uma sessão ativa em memória
     if (this.activeSessions.has(siteId)) {
       sessionLogger.debug(`Reutilizando contexto ativo em memória para: ${siteId}`);
@@ -129,7 +131,15 @@ export class SessionManager {
         '--disable-dev-shm-usage',
         '--disable-accelerated-2d-canvas',
         '--no-zygote',
-        '--disable-gpu'
+        '--disable-gpu',
+        // Memory optimization flags for 24/7 background apps
+        '--disable-background-networking',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-extensions',
+        '--disable-renderer-backgrounding',
+        '--disable-sync',
+        '--js-flags="--max-old-space-size=512"'
       ]
     });
 
@@ -171,10 +181,10 @@ export class SessionManager {
     await this.closeSession(siteId);
 
     const userDataDir = path.join(this.profilesDir, siteId);
-    if (fs.existsSync(userDataDir)) {
+    if (await pathExists(userDataDir)) {
       try {
         // Remove recursivamente a pasta do perfil
-        fs.rmSync(userDataDir, { recursive: true, force: true });
+        await fs.promises.rm(userDataDir, { recursive: true, force: true });
         sessionLogger.info(`Perfil em disco removido para: ${siteId}`);
       } catch (error: any) {
         sessionLogger.error(`Erro ao remover perfil físico de ${siteId}: ${error.message}`);
@@ -188,10 +198,10 @@ export class SessionManager {
   async clearAllSessions(): Promise<void> {
     await this.closeActiveSessions();
 
-    if (fs.existsSync(this.profilesDir)) {
+    if (await pathExists(this.profilesDir)) {
       try {
-        fs.rmSync(this.profilesDir, { recursive: true, force: true });
-        this.ensureProfilesDir();
+        await fs.promises.rm(this.profilesDir, { recursive: true, force: true });
+        await this.initializeStorage();
         sessionLogger.info('Todos os perfis de navegação foram limpos');
       } catch (error: any) {
         sessionLogger.error(`Erro ao limpar pasta de perfis: ${error.message}`);
@@ -202,9 +212,9 @@ export class SessionManager {
   /**
    * Obtém status simplificado dos perfis
    */
-  getSessionStatus(): { active: number; persisted: number } {
-    const persistedCount = fs.existsSync(this.profilesDir)
-      ? fs.readdirSync(this.profilesDir).length
+  async getSessionStatus(): Promise<{ active: number; persisted: number }> {
+    const persistedCount = await pathExists(this.profilesDir)
+      ? (await fs.promises.readdir(this.profilesDir)).length
       : 0;
 
     return {
@@ -223,3 +233,12 @@ export class SessionManager {
 }
 
 export const sessionManager = new SessionManager();
+
+async function pathExists(targetPath: string): Promise<boolean> {
+  try {
+    await fs.promises.access(targetPath, fs.constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}

@@ -1,0 +1,34 @@
+# BRAVO AUTOMATION - REGRAS DO PROJETO
+
+## 1. Agentes e Skills
+Sempre consulte as definições técnicas nas skills antes de sugerir mudanças estruturais:
+- **Melhorias de Sistema:** `.cursor/skills/system-improvement-agent/SKILL.md`
+- **Resiliência de Automação:** `.cursor/skills/automation-engine-resilience/SKILL.md`
+- **Fluxo de Dados Dashboard:** `.cursor/skills/dashboard-data-flow/SKILL.md`
+- **Consolidação Master:** `.cursor/skills/master-consolidation-flow/SKILL.md`
+
+---
+
+## 2. Diretrizes de Arquitetura e Resiliência
+- **Resiliência do Motor:** O `AutomationEngine` deve processar cada filial em um bloco `try/catch` independente. Falhas em uma filial **nunca** devem interromper a fila global.
+- **Continuidade 24/7:** O sistema deve suportar execuções longas. Use `global.gc()` após tarefas pesadas (consolidação de Excel) para evitar vazamento de memória.
+- **UI Responsiva:** Priorize a responsividade da UI. Evite bloquear a main thread. Para tarefas pesadas, use workers (`heavy-tasks.worker.ts`).
+- **Isolamento de Erros:** Registre falhas parciais via `automationLogger`. Erros críticos devem gerar screenshots para auditoria.
+
+---
+
+## 3. Regras de Dados e Persistência
+- **Integridade do Master:** NUNCA altere a estrutura de colunas dos arquivos `CONSOLIDADO_MASTER.xlsx`. Eles são consumidos por Power BI e ferramentas externas.
+- **Snapshots:** Dados incrementais devem ser validados em `app/storage/snapshots/` antes do merge final.
+- **Filtros de Dashboard:** Separe recargas estruturais (troca de tipo/ano) de filtros interativos locais (que não devem disparar IPCs pesadas).
+
+---
+
+## 4. Fluxo de Trabalho e Diagnóstico
+- **Validação de Build:** Sempre execute `npm run build` e verifique o lint após mudanças.
+- **Teste de Release:** Para mudanças que afetam caminhos de arquivos ou comportamento do executável, gere o instalador com `npm run dist:full` e teste o app instalado.
+- **Diagnóstico Rápido:**
+  1. Identifique se o erro é no `renderer`, `main`, `worker` ou `core`.
+  2. Verifique os logs em `%APPDATA%\Automatizador Bravo\logs`.
+  3. Workers não devem importar `electron` estaticamente (causa erro no build). Use `require('electron')` dinâmico se necessário.
+  4. Valide paridade funcional: mesmos filtros devem gerar os mesmos números após qualquer otimização.

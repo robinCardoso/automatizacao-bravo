@@ -61,7 +61,7 @@ const logger = winston.createLogger({
 
 // Logger específico para automação
 export const automationLogger = winston.createLogger({
-  level: process.env.AUTOMATION_LOG_LEVEL || 'debug',
+  level: process.env.AUTOMATION_LOG_LEVEL || 'info',
   format: winston.format.combine(
     winston.format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss.SSS'
@@ -83,7 +83,7 @@ export const automationLogger = winston.createLogger({
 
 // Logger específico para sessões
 export const sessionLogger = winston.createLogger({
-  level: process.env.SESSION_LOG_LEVEL || 'debug',
+  level: process.env.SESSION_LOG_LEVEL || 'info',
   format: winston.format.combine(
     winston.format.timestamp({
       format: 'YYYY-MM-DD HH:mm:ss.SSS'

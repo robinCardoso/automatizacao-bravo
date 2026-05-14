@@ -2,6 +2,7 @@ import { automationEngine } from './automation-engine';
 import { configManager, Preset } from '../../config/config-manager';
 import { automationLogger } from '../../config/logger';
 import { presetRepository } from './preset-repository';
+import { BrowserWindow } from 'electron';
 
 class SchedulerService {
   private timer: NodeJS.Timeout | null = null;
@@ -121,7 +122,13 @@ class SchedulerService {
 
             try {
               // Tenta rodar. Se o engine estiver ocupado, ele vai disparar um erro que capturaremos.
-              await automationEngine.runAutomation({ presetId: preset.id });
+              const results = await automationEngine.runAutomation({ presetId: preset.id });
+
+              // Execuções agendadas não passam pelo IPC start-automation;
+              // portanto precisamos notificar manualmente o renderer quando finalizar.
+              BrowserWindow.getAllWindows().forEach(win => {
+                win.webContents.send('automation-complete', { results });
+              });
 
               // Após sucesso, calcula a próxima data
               this.calculateNextRun(preset);
@@ -130,6 +137,9 @@ class SchedulerService {
                 automationLogger.warn(`[Scheduler] Adiado: Engine ocupado. Tentará novamente no próximo ciclo para ${preset.name}`);
               } else {
                 automationLogger.error(`[Scheduler] Falha na execução agendada de ${preset.name}: ${error.message}`);
+                BrowserWindow.getAllWindows().forEach(win => {
+                  win.webContents.send('automation-error', error.message);
+                });
                 // Mesmo com erro, reagendamos para não travar o loop infinito de erro
                 this.calculateNextRun(preset);
               }

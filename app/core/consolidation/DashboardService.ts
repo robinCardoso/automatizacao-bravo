@@ -6,6 +6,8 @@ import { configManager } from '../../config/config-manager';
 import { buildMasterSnapshotName } from '../../policy/snapshot/FileNamingPolicy';
 import { ExcelUtils } from '../utils/ExcelUtils';
 import { catalogService } from '../services/CatalogService';
+import { PerformanceMonitor } from '../utils/PerformanceMonitor';
+import { dashboardSqliteIndex } from './DashboardSqliteIndex';
 
 export interface DashboardData {
     type: string;
@@ -34,6 +36,18 @@ export interface DashboardData {
     mappingUsed: any;
     sourceFile: string;
     unknownRefs?: { ref: string; count: number }[]; // [NEW] Para relatório de erros
+    indexRebuilt?: boolean;
+    baseRows?: Array<{
+        month: string;
+        value: number;
+        group: string;
+        category: string;
+        brand: string;
+        customer: string;
+        subGroup: string;
+        uf: string;
+        associado: string;
+    }>;
 }
 
 // [CACHE] Armazena os dados brutos carregados dos arquivos Excel para evitar leituras lentas
@@ -44,6 +58,7 @@ interface CacheEntry {
 
 export class DashboardService {
     private static dataCache = new Map<string, CacheEntry>();
+    private static readonly MAX_CACHE_ENTRIES = 2;
 
     constructor() { }
 
@@ -56,9 +71,11 @@ export class DashboardService {
     async getDashboardStats(
         tipoReport: string,
         destinationDir: string,
-        options: { month?: string, year?: string, categoryField?: string } = {}
+        options: { month?: string, year?: string, categoryField?: string, __includeBase?: boolean } = {}
     ): Promise<DashboardData | null> {
+        const perf = new PerformanceMonitor(`dashboard:${tipoReport}`);
         try {
+            const includeBase = !!options.__includeBase;
             const tipo = configManager.normalizeReportType(tipoReport);
             const fileName = buildMasterSnapshotName(tipo, "CURRENT");
 
@@ -72,7 +89,7 @@ export class DashboardService {
             });
 
             // Se não encontrou o arquivo no destino sugerido, busca em todos os Presets do mesmo tipo
-            if (!fs.existsSync(filePath)) {
+            if (!(await this.pathExists(filePath))) {
                 automationLogger.debug(`[DashboardService] Arquivo não encontrado em ${resolvedDest}. Buscando em presets do tipo ${tipo}...`);
 
                 const matchingPresets = presets.filter(p => configManager.normalizeReportType(p.type) === tipo);
@@ -80,7 +97,7 @@ export class DashboardService {
                     const pDest = configManager.resolvePath(p.destination);
                     if (pDest) {
                         const candidatePath = path.join(pDest, fileName);
-                        if (fs.existsSync(candidatePath)) {
+                        if (await this.pathExists(candidatePath)) {
                             filePath = candidatePath;
                             resolvedDest = pDest;
                             currentPreset = p;
@@ -91,8 +108,9 @@ export class DashboardService {
                 }
             }
 
-            if (!fs.existsSync(filePath)) {
+            if (!(await this.pathExists(filePath))) {
                 automationLogger.warn(`[DashboardService] Arquivo master de ${tipo} não encontrado em nenhum local conhecido.`);
+                perf.done({ ok: false, reason: 'file_not_found' });
                 return null;
             }
 
@@ -116,12 +134,36 @@ export class DashboardService {
 
 
             // [CACHE] Verifica se o arquivo já está no cache e se não foi modificado
-            const stats = fs.statSync(filePath);
+            const stats = await fs.promises.stat(filePath);
             const mtime = stats.mtimeMs;
             const cacheKey = `${tipo}_${filePath}`;
             const cached = DashboardService.dataCache.get(cacheKey);
 
             let data: any[];
+
+            if (!includeBase) {
+                const lastUpdateIso = stats.mtime.toISOString();
+                let indexRebuilt = false;
+                if (!dashboardSqliteIndex.isFresh(tipo, filePath, mtime)) {
+                    automationLogger.info(`[DashboardService] Reindexando dashboard ${tipo} em SQLite: ${filePath}`);
+                    const workbook = XLSX.readFile(filePath);
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = ExcelUtils.safeSheetToJson(sheet, { defval: "" });
+                    dashboardSqliteIndex.rebuild(tipo, filePath, mtime, rows, mapping);
+                    indexRebuilt = true;
+                }
+
+                const sqliteResult: DashboardData = dashboardSqliteIndex.buildDashboard(
+                    tipo,
+                    filePath,
+                    options as any,
+                    mapping,
+                    lastUpdateIso
+                );
+                sqliteResult.indexRebuilt = indexRebuilt;
+                perf.done({ ok: true, sqlite: true, totalRecords: sqliteResult.summary.totalRecords });
+                return sqliteResult;
+            }
 
             if (cached && cached.mtime === mtime) {
                 automationLogger.debug(`[DashboardService] Usando dados em cache para: ${filePath}`);
@@ -134,13 +176,23 @@ export class DashboardService {
 
                 // Atualiza o cache
                 DashboardService.dataCache.set(cacheKey, { data, mtime });
+                this.enforceCacheLimit();
             }
 
-            if (data.length === 0) return null;
+            if (data.length === 0) {
+                perf.done({ ok: true, rows: 0 });
+                return null;
+            }
 
-            return this.processData(data, tipoReport, mapping, filePath, options);
+            const result = await this.processData(data, tipoReport, mapping, filePath, options);
+            if (includeBase) {
+                result.baseRows = this.buildBaseRows(data, mapping, tipo);
+            }
+            perf.done({ ok: true, rows: data.length, totalRecords: result.summary.totalRecords });
+            return result;
         } catch (error: any) {
             automationLogger.error(`[DashboardService] Erro ao processar dashboard: ${error.message}`);
+            perf.done({ ok: false, error: error.message });
             return null;
         }
     }
@@ -148,13 +200,13 @@ export class DashboardService {
 
     // ... (getDashboardStats remains the same)
 
-    private processData(
+    private async processData(
         data: any[],
         type: string,
         mapping: any,
         filePath: string,
         options: { month?: string, categoryField?: string, [key: string]: any } = {}
-    ): DashboardData {
+    ): Promise<DashboardData> {
         // [NEW] 1. Auto-Learning: Se for VENDAS, atualiza o catálogo
         if (type === 'VENDA') {
             catalogService.updateFromSales(data);
@@ -212,7 +264,7 @@ export class DashboardService {
             summary: {
                 totalValue: 0,
                 totalRecords: 0,
-                lastUpdate: fs.statSync(filePath).mtime.toISOString(),
+                lastUpdate: this.extractMaxProcessDate(data) || (await fs.promises.stat(filePath)).mtime.toISOString(),
                 valueGrowth: 0,
                 recordGrowth: 0
             },
@@ -288,20 +340,17 @@ export class DashboardService {
         const getRowValue = (row: any, key: string | null) => (key ? row[key] : undefined);
 
         // [FILTRO TIPO OPERAÇÃO] Se for VENDA, filtra apenas registros com 'Tipo Operação' = 'Venda'
-        const filteredData = type === 'VENDA'
-            ? data.filter(row => {
+        let totalVendaInput = 0;
+        let totalVendaValid = 0;
+        for (const row of data) {
+            if (type === 'VENDA') {
+                totalVendaInput++;
                 const tipoOp = getRowValue(row, resolvedMapping.tipoOperacao);
-                if (tipoOp === undefined || tipoOp === null || String(tipoOp).trim() === '') return true;
-                return String(tipoOp).trim().toLowerCase() === 'venda';
-            })
-            : data;
-
-        // Log para debug
-        if (type === 'VENDA' && filteredData.length !== data.length) {
-            automationLogger.info(`[DashboardService] Filtro 'Tipo Operação': ${data.length} registros → ${filteredData.length} registros (Venda)`);
-        }
-
-        filteredData.forEach(row => {
+                if (!(tipoOp === undefined || tipoOp === null || String(tipoOp).trim() === '' || String(tipoOp).trim().toLowerCase() === 'venda')) {
+                    continue;
+                }
+                totalVendaValid++;
+            }
             // 1. Extração de Metadados Globais (para preencher os filtros da UI)
             const rawDate = getRowValue(row, resolvedMapping.date);
             let dateObj: Date | null = null;
@@ -363,7 +412,7 @@ export class DashboardService {
                 }
             }
 
-            if (!matchesCustomFilters) return;
+            if (!matchesCustomFilters) continue;
 
             // 3. Processamento de Valores
             let val = 0;
@@ -453,7 +502,11 @@ export class DashboardService {
                     categoryMap.set(String(cVal2), count + val);
                 }
             }
-        });
+        }
+
+        if (type === 'VENDA' && totalVendaInput !== totalVendaValid) {
+            automationLogger.info(`[DashboardService] Filtro 'Tipo Operação': ${totalVendaInput} registros → ${totalVendaValid} registros (Venda)`);
+        }
 
         // 4. Cálculos de Crescimento (Revisado para suportar "Todos os Meses" e "Ano vs Ano Anterior")
         let currentPeriodVal = 0;
@@ -553,6 +606,141 @@ export class DashboardService {
         }
 
         return stats;
+    }
+
+    private async pathExists(filePath: string): Promise<boolean> {
+        try {
+            await fs.promises.access(filePath, fs.constants.F_OK);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private enforceCacheLimit(): void {
+        while (DashboardService.dataCache.size > DashboardService.MAX_CACHE_ENTRIES) {
+            const firstKey = DashboardService.dataCache.keys().next().value;
+            if (!firstKey) break;
+            DashboardService.dataCache.delete(firstKey);
+        }
+    }
+
+    private buildBaseRows(data: any[], mapping: any, type: string): DashboardData['baseRows'] {
+        const rows: NonNullable<DashboardData['baseRows']> = [];
+        if (!data || data.length === 0) return rows;
+
+        const allKeys = Object.keys(data[0]);
+        const getActualKey = (fieldName: string) => {
+            if (!fieldName) return null;
+            const lower = fieldName.toLowerCase();
+            return allKeys.find(k => k.toLowerCase() === lower) || null;
+        };
+
+        const keys = {
+            date: getActualKey(mapping?.date),
+            value: getActualKey(mapping?.value),
+            group: getActualKey(mapping?.group),
+            subGroup: getActualKey(mapping?.subGroup) || getActualKey('Sub-Group') || getActualKey('SUB-GRUPO') || getActualKey('SubGrupo'),
+            category: getActualKey(mapping?.category),
+            brand: getActualKey('Marca'),
+            customer: getActualKey('Cliente') || getActualKey('Cliente / Nome Fantasia') || getActualKey('Nome Fantasia'),
+            tipoOperacao: getActualKey('Tipo Operação'),
+            uf: getActualKey('UF') || getActualKey('Estado') || getActualKey('Situação Tributária') || getActualKey('UF_DESTINO'),
+            associado: getActualKey('Associado') || getActualKey('Vendedor') || getActualKey('Cliente')
+        };
+
+        const toMonth = (rawDate: any): string => {
+            if (rawDate == null || rawDate === '') return '';
+            let dateObj: Date | null = null;
+            if (rawDate instanceof Date) dateObj = rawDate;
+            else if (typeof rawDate === 'number') dateObj = new Date((rawDate - 25569) * 86400 * 1000);
+            else {
+                const dateStr = String(rawDate);
+                if (dateStr.includes('-')) {
+                    const parts = dateStr.split('-');
+                    dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]?.substring(0, 2) || '1'));
+                } else if (dateStr.includes('/')) {
+                    const parts = dateStr.split('/');
+                    if (parts.length === 3) dateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+                }
+            }
+            if (!dateObj || isNaN(dateObj.getTime())) return '';
+            return `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}`;
+        };
+
+        const toNumber = (rawVal: any): number => {
+            if (rawVal === undefined || rawVal === null) return 0;
+            if (typeof rawVal === 'number') return rawVal;
+            const strVal = String(rawVal).trim();
+            const hasComma = strVal.includes(',');
+            const hasDot = strVal.includes('.');
+            let cleanVal = strVal;
+            if (hasComma && hasDot) {
+                if (strVal.lastIndexOf(',') > strVal.lastIndexOf('.')) cleanVal = strVal.replace(/\./g, '').replace(',', '.');
+                else cleanVal = strVal.replace(/,/g, '');
+            } else if (hasComma) {
+                cleanVal = strVal.replace(',', '.');
+            }
+            cleanVal = cleanVal.replace(/[^\d.-]/g, '');
+            return parseFloat(cleanVal) || 0;
+        };
+
+        for (const row of data) {
+            if (type === 'VENDA') {
+                const tipoOp = keys.tipoOperacao ? row[keys.tipoOperacao] : undefined;
+                if (!(tipoOp === undefined || tipoOp === null || String(tipoOp).trim() === '' || String(tipoOp).trim().toLowerCase() === 'venda')) {
+                    continue;
+                }
+            }
+
+            rows.push({
+                month: toMonth(keys.date ? row[keys.date] : undefined),
+                value: toNumber(keys.value ? row[keys.value] : undefined),
+                group: String(keys.group ? (row[keys.group] ?? '') : ''),
+                category: String(keys.category ? (row[keys.category] ?? '') : ''),
+                brand: String(keys.brand ? (row[keys.brand] ?? '') : ''),
+                customer: String(keys.customer ? (row[keys.customer] ?? '') : ''),
+                subGroup: String(keys.subGroup ? (row[keys.subGroup] ?? '') : ''),
+                uf: String(keys.uf ? (row[keys.uf] ?? '') : ''),
+                associado: String(keys.associado ? (row[keys.associado] ?? '') : '')
+            });
+        }
+        return rows;
+    }
+
+    private extractMaxProcessDate(data: any[]): string | null {
+        if (!data || data.length === 0) return null;
+        
+        const firstRow = data[0];
+        const allKeys = Object.keys(firstRow);
+        const key = allKeys.find(k => k.toLowerCase() === 'data_processamento_original');
+        if (!key) return null;
+
+        let maxDate: Date | null = null;
+        for (const row of data) {
+            const val = row[key];
+            if (!val) continue;
+
+            let d: Date | null = null;
+            if (val instanceof Date) d = val;
+            else if (typeof val === 'number') d = new Date((val - 25569) * 86400 * 1000);
+            else {
+                const s = String(val);
+                if (s.includes('-')) {
+                    const p = s.split('-');
+                    d = new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt((p[2] || '').substring(0, 2), 10));
+                } else if (s.includes('/')) {
+                    const p = s.split('/');
+                    if (p.length === 3) d = new Date(parseInt(p[2], 10), parseInt(p[1], 10) - 1, parseInt(p[0], 10));
+                }
+            }
+
+            if (d && !isNaN(d.getTime())) {
+                if (!maxDate || d > maxDate) maxDate = d;
+            }
+        }
+
+        return maxDate ? maxDate.toISOString() : null;
     }
 }
 
