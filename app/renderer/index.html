@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Automatizador Bravo - Sistema de Automação Corporativa</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -148,7 +151,7 @@
                                 <div class="premium-card-header">
                                     <div class="header-title">
                                         <span class="icon">📊</span>
-                                        <span>AUDITORIA DE INTEGRIDADE (14+ EMPRESAS)</span>
+                                        <span>Auditoria de Integridade (14+ Empresas)</span>
                                     </div>
                                     <div id="auditStatus" class="status-badge badge-waiting">Aguardando Início</div>
                                 </div>
@@ -204,22 +207,24 @@
                 <div id="view-dashboard" class="app-view" style="position: relative;">
                     <!-- LOADING OVERLAY -->
                     <div id="dashLoadingOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 1000; justify-content: center; align-items: center; flex-direction: column;">
-                        <div class="spinner" style="border: 4px solid rgba(0,0,0,0.1); width: 40px; height: 40px; border-radius: 50%; border-left-color: #3498db; animation: spin 1s linear infinite;"></div>
+                        <svg viewBox="0 0 50 50" style="width: 40px; height: 40px; animation: spin 1s linear infinite;">
+                            <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="4" />
+                            <circle cx="25" cy="25" r="20" fill="none" stroke="#3498db" stroke-width="4" stroke-dasharray="80 200" stroke-dashoffset="0" />
+                        </svg>
                         <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
                         <div style="margin-top: 15px; font-weight: bold; color: #2c3e50;">Aguarde, processando dados...</div>
                         <div style="font-size: 11px; color: #7f8c8d; margin-top: 5px;">(Pode levar alguns segundos para arquivos grandes)</div>
                     </div>
 
-                    <section class="premium-card">
-                        <div class="premium-card-header dashboard-header-compact"
+                    <div class="dashboard-view-wrapper">
+                        <div class="dashboard-header-compact"
                             style="flex-direction: column; align-items: flex-start; gap: 10px; padding-bottom: 6px;">
                             <!-- Top Row: Title and Main Actions -->
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
                                 <div class="header-title">
                                     <span class="icon">📊</span>
-                                    <span style="white-space: nowrap; font-size: 14px; font-weight: 700;">PAINEL DE
-                                        RESULTADOS CONSOLIDADOS</span>
+                                    <span style="white-space: nowrap; font-size: 14px; font-weight: 700;">Painel de Resultados Consolidados</span>
                                 </div>
                                 <div class="header-actions" style="margin-left: auto;">
                                     <div class="report-toggle-group">
@@ -294,51 +299,28 @@
                             <div id="dashboard-filter-pills" class="dashboard-filter-pills"></div>
                         </div>
                         <div class="card-body dashboard-cards-body">
-                            <div class="dashboard-summary" id="dashSummary"
-                                style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 15px; margin-top: 0;">
-                                <div class="stat-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                                    padding: 10px 12px; border-radius: 8px; text-align: center;">
-                                    <span class="stat-label" style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
-                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Valor
-                                        Total</span>
-                                    <span class="stat-value" id="dashTotalValue" style="display: block; font-size: 16px; 
-                                        font-weight: 700; color: #fff;">R$ 0,00</span>
+                            <div class="dashboard-summary" id="dashSummary">
+                                <div class="stat-box" id="dashTotalValueBox">
+                                    <span class="stat-label">Valor Total</span>
+                                    <span class="stat-value" id="dashTotalValue">R$ 0,00</span>
                                 </div>
-                                <div class="stat-box" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); 
-                                    padding: 10px 12px; border-radius: 8px; text-align: center;">
-                                    <span class="stat-label"
-                                        style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
-                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Registros</span>
-                                    <span class="stat-value" id="dashTotalRecords" style="display: block; font-size: 16px; 
-                                        font-weight: 700; color: #fff;">0</span>
+                                <div class="stat-box" id="dashTotalRecordsBox">
+                                    <span class="stat-label">Registros</span>
+                                    <span class="stat-value" id="dashTotalRecords">0</span>
                                 </div>
-                                <div class="stat-box" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
-                                    padding: 10px 12px; border-radius: 8px; text-align: center; position: relative;">
-                                    <span class="stat-label" style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
-                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Cresc.
-                                        Valor</span>
-                                    <span class="stat-value" id="dashValueGrowthValue" style="display: block; font-size: 16px; 
-                                        font-weight: 700; color: #fff;">0%</span>
-                                    <span class="growth-icon" id="dashValueGrowthIcon" style="position: absolute; top: 8px; 
-                                        right: 8px; font-size: 12px;">-</span>
+                                <div class="stat-box" id="dashValueGrowthBox">
+                                    <span class="stat-label">Cresc. Valor</span>
+                                    <span class="stat-value" id="dashValueGrowthValue">0%</span>
+                                    <span class="growth-icon" id="dashValueGrowthIcon">-</span>
                                 </div>
-                                <div class="stat-box" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); 
-                                    padding: 10px 12px; border-radius: 8px; text-align: center; position: relative;">
-                                    <span class="stat-label" style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
-                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Cresc.
-                                        Registros</span>
-                                    <span class="stat-value" id="dashRecordGrowthValue" style="display: block; font-size: 16px; 
-                                        font-weight: 700; color: #fff;">0%</span>
-                                    <span class="growth-icon" id="dashRecordGrowthIcon" style="position: absolute; top: 8px; 
-                                        right: 8px; font-size: 12px;">-</span>
+                                <div class="stat-box" id="dashRecordGrowthBox">
+                                    <span class="stat-label">Cresc. Registros</span>
+                                    <span class="stat-value" id="dashRecordGrowthValue">0%</span>
+                                    <span class="growth-icon" id="dashRecordGrowthIcon">-</span>
                                 </div>
-                                <div class="stat-box" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); 
-                                    padding: 10px 12px; border-radius: 8px; text-align: center;">
-                                    <span class="stat-label" style="display: block; font-size: 10px; color: rgba(255,255,255,0.8); 
-                                        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Última
-                                        Atualização</span>
-                                    <span class="stat-value" id="dashLastUpdate" style="display: block; font-size: 11px; 
-                                        font-weight: 600; color: #fff;">-</span>
+                                <div class="stat-box" id="dashLastUpdateBox">
+                                    <span class="stat-label">Última Atualização</span>
+                                    <span class="stat-value" id="dashLastUpdate" style="font-size: 12px;">-</span>
                                 </div>
                             </div>
 
@@ -425,7 +407,7 @@
                                 </div>
                             </div>
                         </div>
-                    </section>
+                    </div>
                 </div>
             </main>
         </div>

@@ -167,7 +167,7 @@ export const Presets = {
         container.innerHTML = '';
         scheduledPresets.forEach(preset => {
             const div = document.createElement('div');
-            div.style.cssText = 'padding: 8px; background: #ffffff; border-radius: 6px; border-left: 3px solid #3498db; font-size: 11px; margin-bottom: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);';
+            div.style.cssText = 'padding: 8px; background: #ffffff; border-radius: 6px; border: 1px solid #e2e8f0; border-top: 2px solid #3498db; font-size: 11px; margin-bottom: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);';
 
             let timeInfo = '';
             if (preset.schedule.mode === 'interval') {

@@ -61,7 +61,7 @@ export const Sites = {
                     Para gerenciar sites e ações, você precisa primeiro selecionar um preset para edição.
                 </p>
                 <button class="btn btn-primary" id="btnGoToPresets">
-                    → IR PARA PREDEFINIÇÕES
+                    → Ir para Predefinições
                 </button>
             </div>
         `;
@@ -78,7 +78,7 @@ export const Sites = {
 
         // Header do Preset
         const header = document.createElement('div');
-        header.style.cssText = 'padding: 15px; background: #e8f8f5; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #27ae60; display: flex; justify-content: space-between; align-items: center;';
+        header.style.cssText = 'padding: 15px; background: #f0fdf4; border-radius: 8px; margin-bottom: 20px; border: 1px solid #bbf7d0; display: flex; justify-content: space-between; align-items: center;';
         header.innerHTML = `
             <div>
                 <strong style="color: #27ae60; font-size: 16px;">✓ Editando: ${preset.name}</strong>

@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-17T16:08:00Z",
+  "title": "Design System: Automatizador Bravo",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Active Accent Blue",
+        "canonical": "oklch(67.5% 0.16 244)",
+        "tonalRamp": [
+          "#1e3a8a",
+          "#1d4ed8",
+          "#2563eb",
+          "#3b82f6",
+          "#60a5fa",
+          "#93c5fd",
+          "#bfdbfe",
+          "#eff6ff"
+        ]
+      },
+      "neutral-bg": {
+        "role": "neutral",
+        "displayName": "Cool Slate",
+        "canonical": "oklch(97.5% 0.005 240)",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#f8fafc"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Outfit Display",
+        "purpose": "Screen titles, main metrics, and section headers."
+      },
+      "body": {
+        "displayName": "Native Stack Body",
+        "purpose": "Logs, parameters, table text, and forms."
+      }
+    },
+    "shadows": [
+      {
+        "name": "hover-glow",
+        "value": "0 4px 12px rgba(0, 0, 0, 0.03)",
+        "purpose": "Soft elevation indicator on interactive card hover."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-smooth",
+        "value": "cubic-bezier(0.4, 0, 0.2, 1)",
+        "purpose": "Standard transitions for buttons, tab toggles, and sidebar navigation."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Standard action button for operations",
+      "html": "<button class=\"ds-btn-primary\">Iniciar Automação</button>",
+      "css": ".ds-btn-primary { background: #4299e1; color: #ffffff; padding: 10px 24px; font-family: 'Outfit', sans-serif; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: #3182ce; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(66, 153, 225, 0.2); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Resilient Operations Command",
+    "overview": "Automatizador Bravo is a high-reliability desktop application for web automation and real-time sales reporting. The interface is optimized to reduce cognitive fatigue during long operational shifts and to present data with executive clarity. It rejects decorative clutter, glowing neon grids, and standard AI purple gradients.",
+    "keyCharacteristics": [
+      "Muted color strategy focusing accents on status and action.",
+      "Dense, highly readable native typography that adapts instantly to system settings.",
+      "Highly functional layout grid with distinct, clean spacing."
+    ],
+    "rules": [
+      {
+        "name": "The Accent-as-Action Rule",
+        "body": "Colored accents must only be used to highlight active interactive states, errors, successes, or alerts. Never use accents decoratively.",
+        "section": "colors"
+      }
+    ],
+    "dos": [
+      "Do write all user-facing labels in mixed case (Sentence case) to ensure reading flow.",
+      "Do use system-ui typography stacks for data lists and text passages to make the application feel native.",
+      "Do keep spacing consistent by using the defined 12px (sm) / 16px (md) / 20px (lg) spacing scale."
+    ],
+    "donts": [
+      "Don't use border-left/right thicker than 1px as a colored highlight on cards or alerts (side-stripes).",
+      "Don't use purple/violet gradients and cyan-on-dark paletizing.",
+      "Don't display text transformed into uppercase for sentences longer than 20 characters."
+    ]
+  }
+}
