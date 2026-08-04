@@ -456,11 +456,24 @@ export class DiffEngine {
     const totalDeletedRows = [...oldDeletedRows, ...newlyDeletedFiltered];
 
     if (totalDeletedRows.length > 0) {
+      const targetCol = identity.tipo === 'VENDA' ? 'Referencia' : (identity.tipo === 'PEDIDO' ? 'Ref' : null);
+      if (targetCol) {
+        totalDeletedRows.forEach(row => {
+          const actualKey = Object.keys(row).find(k => k.toLowerCase().trim() === targetCol.toLowerCase());
+          if (actualKey && row[actualKey] !== undefined && row[actualKey] !== null) {
+            row[actualKey] = String(row[actualKey]);
+          }
+        });
+      }
       const delWs = XLSX.utils.json_to_sheet(totalDeletedRows);
+      if (targetCol) {
+        ExcelUtils.forceColumnToText(delWs, targetCol);
+      }
       const delWb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(delWb, delWs, "Deletados_SSP");
       XLSX.writeFile(delWb, files.deleted, { compression: true });
     }
+
 
     // 7.1 Backup do CURRENT antes de sobrescrever (origem inconstante: permite restauração se o novo estiver errado)
     const MAX_BACKUPS_PER_IDENTITY = 2;
@@ -538,7 +551,19 @@ export class DiffEngine {
 
     if (hasActualDataChange || !fs.existsSync(files.current)) {
         automationLogger.info(`[DiffEngine] Aplicando mudanças no snapshot CURRENT (${nextRows.length} linhas).`);
+        const targetCol = identity.tipo === 'VENDA' ? 'Referencia' : (identity.tipo === 'PEDIDO' ? 'Ref' : null);
+        if (targetCol) {
+          finalNextRows.forEach(row => {
+            const actualKey = Object.keys(row).find(k => k.toLowerCase().trim() === targetCol.toLowerCase());
+            if (actualKey && row[actualKey] !== undefined && row[actualKey] !== null) {
+              row[actualKey] = String(row[actualKey]);
+            }
+          });
+        }
         const newWs = XLSX.utils.json_to_sheet(finalNextRows);
+        if (targetCol) {
+          ExcelUtils.forceColumnToText(newWs, targetCol);
+        }
         const newWb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(newWb, newWs, "Current_SSP");
         XLSX.writeFile(newWb, files.current, { compression: true });

@@ -139,7 +139,7 @@ export class Consolidator {
                     for (let i = 0; i < rows.length; i += chunkSize) {
                         const chunk = rows.slice(i, i + chunkSize);
                         for (const row of chunk) {
-                            const enriched = {
+                            const enriched: any = {
                                 PERIODO_ORIGINAL: snap.period,
                                 ORIGEM_UF: snap.uf,
                                 ORIGEM_SITE: siteName,
@@ -147,6 +147,13 @@ export class Consolidator {
                                 ORIGEM_SNAPSHOT: snap.filename,
                                 ...row
                             };
+                            const targetCol = tipo === 'VENDA' ? 'Referencia' : (tipo === 'PEDIDO' ? 'Ref' : null);
+                            if (targetCol) {
+                                const actualKey = Object.keys(enriched).find(k => k.toLowerCase().trim() === targetCol.toLowerCase());
+                                if (actualKey && enriched[actualKey] !== undefined && enriched[actualKey] !== null) {
+                                    enriched[actualKey] = String(enriched[actualKey]);
+                                }
+                            }
                             if (dedupeState.accept(enriched)) {
                                 masterData.push(enriched);
                             }
@@ -169,6 +176,10 @@ export class Consolidator {
             }
 
             const masterWs = XLSX.utils.json_to_sheet(masterData);
+            const targetCol = tipo === 'VENDA' ? 'Referencia' : (tipo === 'PEDIDO' ? 'Ref' : null);
+            if (targetCol) {
+                ExcelUtils.forceColumnToText(masterWs, targetCol);
+            }
             const masterWb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(masterWb, masterWs, 'Consolidado');
 

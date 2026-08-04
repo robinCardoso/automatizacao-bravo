@@ -83,4 +83,40 @@ export class ExcelUtils {
 
         return XLSX.utils.sheet_to_json(sheet, { ...options, range: headerRow });
     }
+
+    /**
+     * Garante que uma coluna específica (por nome, case-insensitive) em uma planilha
+     * seja formatada e salva como TEXTO.
+     */
+    static forceColumnToText(sheet: XLSX.WorkSheet, columnName: string): void {
+        if (!sheet || !sheet['!ref']) return;
+
+        const range = XLSX.utils.decode_range(sheet['!ref']);
+        const colIndices: number[] = [];
+
+        // 1. Encontra todas as colunas correspondentes na linha de cabeçalho
+        for (let c = range.s.c; c <= range.e.c; c++) {
+            const cell = sheet[XLSX.utils.encode_cell({ r: range.s.r, c })];
+            if (cell && cell.v !== undefined && cell.v !== null && String(cell.v).toLowerCase().trim() === columnName.toLowerCase().trim()) {
+                colIndices.push(c);
+            }
+        }
+
+        if (colIndices.length === 0) return; // Nenhuma coluna encontrada
+
+        // 2. Modifica todas as células dessas colunas
+        for (const colIdx of colIndices) {
+            for (let r = range.s.r + 1; r <= range.e.r; r++) {
+                const cellRef = XLSX.utils.encode_cell({ r, c: colIdx });
+                const cell = sheet[cellRef];
+                if (cell) {
+                    cell.t = 's'; // Tipo: string (texto)
+                    if (cell.v !== undefined && cell.v !== null) {
+                        cell.v = String(cell.v); // Valor como string
+                    }
+                }
+            }
+        }
+    }
 }
+
