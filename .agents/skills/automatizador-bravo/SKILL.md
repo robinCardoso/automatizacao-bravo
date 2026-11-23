@@ -43,7 +43,14 @@ Use esta skill sempre que alterar o motor de automação (`app/automation/`), IP
 * `Utils.showNotification()` (`app/renderer/modules/utils.js`) exibe toast flutuante visível em qualquer aba.
 * O botão **Ver** na tabela de auditoria (`app/renderer/modules/ui.js`) abre `showExecutionDetailModal` com os detalhes completos do erro.
 
-## 5. Compilação após alterações
+## 5. Configuração Dev vs Versão Instalada (`%APPDATA%`)
+
+* **Onde ficam as configurações:**
+  * Modo desenvolvimento (`npm run dev` / `npm start`): `app/config/app-config.json` (e logs em `app/logs/`).
+  * Versão instalada (`.exe` empacotado): `%APPDATA%\Automatizador Bravo\config\app-config.json` (e logs em `%APPDATA%\Automatizador Bravo\logs\`).
+* **Sincronização quando solicitado:** O instalador não sobrescreve a configuração já existente do usuário em `%APPDATA%`. Sempre que o usuário pedir para ajustar passos/seletores ou igualar a versão instalada ao `dev`, atualizar diretamente `%APPDATA%\Automatizador Bravo\config\app-config.json` (preservando UTF-8 sem BOM, `sites`, `login`, `pass` e `destination`) e lembrar o usuário de **fechar e reabrir o aplicativo `.exe`** para recarregar o JSON.
+
+## 6. Compilação após alterações
 
 * Sempre rodar `npm run build` (`tsc && xcopy app\renderer dist\renderer /E /I /Y`) após editar arquivos em `app/`.
 * Para gerar o instalador Windows, seguir a skill `build-electron` (`npm run dist` ou `npm run dist:full`).

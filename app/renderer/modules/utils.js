@@ -55,9 +55,10 @@ export const Utils = {
         const style = colors[type] || colors.info;
 
         const toast = document.createElement('div');
-        toast.style.cssText = `background: ${style.bg}; color: ${style.text}; border: 1px solid ${style.border}; border-left: 4px solid ${style.border}; padding: 10px 14px; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); font-size: 12px; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; pointer-events: auto; cursor: pointer; word-break: break-word;`;
+        toast.style.cssText = `background: ${style.bg}; color: ${style.text}; border: 1px solid ${style.border}; border-left: 4px solid ${style.border}; padding: 10px 14px; border-radius: 8px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); font-size: 12px; font-weight: 500; display: flex; align-items: flex-start; gap: 8px; pointer-events: auto; cursor: pointer; word-break: break-word; max-height: 180px; overflow-y: auto;`;
         toast.innerHTML = `<span>${style.icon}</span><span style="flex:1;"></span>`;
-        toast.querySelector('span:last-child').textContent = String(message || '');
+        const text = String(message || '');
+        toast.querySelector('span:last-child').textContent = text.length > 260 ? `${text.slice(0, 260)}...` : text;
         toast.onclick = () => toast.remove();
 
         container.appendChild(toast);

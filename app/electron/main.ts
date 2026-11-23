@@ -536,7 +536,8 @@ function setupAutoUpdater(): void {
 
   autoUpdater.on('error', (err: Error) => {
     logger.warn(`[AutoUpdater] Erro: ${err.message}`);
-    mainWindow?.webContents?.send('update-error', { message: err.message });
+    // Não exibe toast de erro na UI durante checagem automática em background
+    // (ex.: repositório privado ou sem releases publicados retorna 404).
   });
 
   // Checagem em background após 8 segundos (opcional)
