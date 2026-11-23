@@ -81,18 +81,39 @@ export class LoginHandler {
    */
   private async isAlreadyLoggedIn(page: Page, site: SiteConfig): Promise<boolean> {
     try {
-      // Verifica elementos que indicam estado de login
-      // Isso pode variar por site - configurável
-      const logoutSelectors = [
+      const loggedInSelectors = [
         'a[href*="logout"]',
+        'a[href*="sair"]',
         'button:has-text("Sair")',
+        'a:has-text("Sair")',
         '.user-menu',
-        '[data-testid="user-profile"]'
+        '[data-testid="user-profile"]',
+        '#menu__ferramentas',
+        '#menu__monitores',
+        'span:has-text("Ferramentas")'
       ];
 
-      for (const selector of logoutSelectors) {
-        if (await page.isVisible(selector, { timeout: 5000 }).catch(() => false)) {
+      for (const selector of loggedInSelectors) {
+        if (await page.isVisible(selector, { timeout: 800 }).catch(() => false)) {
           return true;
+        }
+      }
+
+      // Se o campo de usuário e senha NÃO estão na página e não estamos em URL de login,
+      // o perfil persistente já redirecionou para a sessão autenticada do ERP.
+      if (site.usernameField) {
+        const currentUrl = page.url().toLowerCase();
+        const isLoginUrl = currentUrl.includes('login') || currentUrl.includes('signin') || currentUrl === 'about:blank';
+        if (!isLoginUrl) {
+          const hasUserField = await page.isVisible(site.usernameField, { timeout: 1500 }).catch(() => false);
+          const hasPassField = site.passwordField
+            ? await page.isVisible(site.passwordField, { timeout: 500 }).catch(() => false)
+            : false;
+
+          if (!hasUserField && !hasPassField) {
+            sessionLogger.info(`Formulário de login ausente em ${site.name}; assumindo sessão já autenticada.`);
+            return true;
+          }
         }
       }
 
@@ -120,6 +141,15 @@ export class LoginHandler {
       sessionLogger.debug('Preenchendo formulário de login');
       const delay = configManager.getConfig().actionDelay || 1000;
 
+      // Caso o formulário de login não apareça (sessão já autenticada após redirect), confirma e segue
+      const userFieldVisible = await page.isVisible(site.usernameField, { timeout: 5000 }).catch(() => false);
+      if (!userFieldVisible) {
+        if (await this.isAlreadyLoggedIn(page, site)) {
+          sessionLogger.info(`Sessão já autenticada detectada antes de preencher login para ${site.name}`);
+          return { success: true, requiresManual: false };
+        }
+      }
+
       // Preenche campos de usuário e senha
       await page.fill(site.usernameField, credentials.username, { timeout: 10000 });
       await page.waitForTimeout(delay);
@@ -130,11 +160,24 @@ export class LoginHandler {
       // Clica no botão de login
       await page.click(site.loginButton, { timeout: 10000 });
 
-      // Aguarda redirecionamento ou carregamento básico
-      // 'load' é mais resiliente que 'networkidle' para sites com analytics/background constante
-      await page.waitForLoadState('load', { timeout: 20000 }).catch(() => {
-        sessionLogger.warn(`Timeout aguardando 'load' completo em ${site.name}, tentando prosseguir...`);
-      });
+      // Aguarda transição real pós-clique: redirecionamento, desaparecimento do formulário ou menu do ERP
+      const postLoginSignals: Promise<any>[] = [
+        page.waitForLoadState('networkidle', { timeout: 12000 }).catch(() => {})
+      ];
+      if (site.usernameField) {
+        postLoginSignals.push(
+          page.locator(site.usernameField).first().waitFor({ state: 'hidden', timeout: 12000 }).catch(() => {})
+        );
+      }
+      postLoginSignals.push(
+        page.locator('#menu__ferramentas, #menu__monitores, a[href*="logout"], a[href*="sair"], button:has-text("Sair")')
+          .first()
+          .waitFor({ state: 'visible', timeout: 12000 })
+          .catch(() => {})
+      );
+
+      await Promise.race(postLoginSignals);
+      await page.waitForTimeout(500);
 
       // Verifica se o login foi bem-sucedido
       if (await this.isLoginSuccessful(page, site)) {
@@ -159,7 +202,7 @@ export class LoginHandler {
   private async isLoginSuccessful(page: Page, site: SiteConfig): Promise<boolean> {
     try {
       // Verifica URL após login
-      const currentUrl = page.url();
+      const currentUrl = page.url().toLowerCase();
       if (currentUrl.includes('login') || currentUrl.includes('signin')) {
         return false;
       }
@@ -167,13 +210,31 @@ export class LoginHandler {
       // Verifica elementos de sucesso
       const successIndicators = [
         'a[href*="logout"]',
+        'a[href*="sair"]',
+        'button:has-text("Sair")',
+        'a:has-text("Sair")',
+        '.user-menu',
         '.dashboard',
         '[data-testid="welcome"]',
-        'h1:has-text("Bem-vindo")'
+        'h1:has-text("Bem-vindo")',
+        '#menu__ferramentas',
+        '#menu__monitores',
+        'span:has-text("Ferramentas")'
       ];
 
       for (const selector of successIndicators) {
-        if (await page.isVisible(selector, { timeout: 5000 }).catch(() => false)) {
+        if (await page.isVisible(selector, { timeout: 1500 }).catch(() => false)) {
+          return true;
+        }
+      }
+
+      // Fallback: se o formulário de login desapareceu após clicar em entrar, login teve sucesso
+      if (site.usernameField) {
+        const stillHasUserField = await page.isVisible(site.usernameField, { timeout: 1000 }).catch(() => false);
+        const stillHasPassField = site.passwordField
+          ? await page.isVisible(site.passwordField, { timeout: 500 }).catch(() => false)
+          : false;
+        if (!stillHasUserField && !stillHasPassField) {
           return true;
         }
       }

@@ -22,6 +22,28 @@ window.addEventListener('DOMContentLoaded', () => {
     Presets.loadPresetsToMain();
     Sessions.loadSessions();
 
+    const ufSelector = document.getElementById('mainUFSelector');
+    if (ufSelector) {
+        ufSelector.addEventListener('change', () => {
+            if (ufSelector.value) {
+                localStorage.setItem('bravo_selected_uf', ufSelector.value);
+                localStorage.removeItem('bravo_selected_uf_cleared');
+            } else {
+                localStorage.removeItem('bravo_selected_uf');
+                localStorage.setItem('bravo_selected_uf_cleared', '1');
+            }
+        });
+    }
+
+    // Sincroniza estado inicial dos botões INICIAR/PARAR com o backend
+    if (window.electronAPI?.getAutomationStatus) {
+        window.electronAPI.getAutomationStatus().then((status) => {
+            if (status === 'EXECUTANDO') {
+                UI.toggleButtons(true);
+            }
+        }).catch(() => {});
+    }
+
     // Verificação de resoluções (mantido para compatibilidade)
     const screenWidth = screen.width;
     const screenHeight = screen.height;
@@ -195,6 +217,12 @@ window.saveConfig = async () => {
 
         await window.electronAPI.saveConfig(config);
 
+        // Se o usuário estiver editando os passos do preset na aba "Sites e Ações",
+        // salva também os passos ao clicar em "Aplicar Alterações".
+        if (State.editingPresetId && document.getElementById('presetStepsList')) {
+            await Sites.savePresetSteps(true);
+        }
+
         Utils.showNotification('Configurações salvas com sucesso!', 'success');
         UI.closeModal('configModal');
     } catch (error) {
@@ -334,20 +362,38 @@ window.quitAndInstall = () => {
 
 // Listeners do Electron (MIGRADOS DO ORIGINAL)
 // Estes listeners são cruciais para que a UI responda aos eventos do backend (main process)
+if (window.electronAPI.onAutomationStarted) {
+    window.electronAPI.onAutomationStarted(() => {
+        UI.toggleButtons(true);
+    });
+}
+
+if (window.electronAPI.onAutomationStopped) {
+    window.electronAPI.onAutomationStopped((data) => {
+        Utils.log(`🛑 ${data?.message || 'Automação interrompida.'}`);
+        UI.toggleButtons(false);
+    });
+}
+
 window.electronAPI.onAutomationProgress((data) => {
     Utils.log(`📊 [${data.siteName}] ${data.message}`);
     UI.updateWorkflowProgress(data);
 });
 
 window.electronAPI.onAutomationComplete((data) => {
-    Utils.log(`🎉 Automação concluída.`);
     UI.toggleButtons(false);
 
     // Atualiza estatísticas do dashboard
-    if (data.results) {
+    if (data?.results) {
         UI.updateDashboardStats(data.results);
     }
 
+    if (data?.cancelled) {
+        Utils.log('🛑 Automação cancelada.');
+        return;
+    }
+
+    Utils.log(`🎉 Automação concluída.`);
     Utils.showNotification('Automação concluída!', 'success');
 });
 

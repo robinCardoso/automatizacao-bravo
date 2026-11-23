@@ -8,6 +8,7 @@ export const UI = {
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
         const auditStatus = document.getElementById('auditStatus');
+        const wasRunning = State.isRunning;
 
         State.isRunning = running;
 
@@ -19,7 +20,7 @@ export const UI = {
                 auditStatus.textContent = 'Executando...';
                 auditStatus.className = 'status-badge badge-running';
             }
-            Utils.log('▶ Automação iniciada');
+            if (!wasRunning) Utils.log('▶ Automação iniciada');
         } else {
             if (startBtn) startBtn.disabled = false;
             if (stopBtn) stopBtn.disabled = true;
@@ -28,7 +29,7 @@ export const UI = {
                 auditStatus.textContent = 'Aguardando Início';
                 auditStatus.className = 'status-badge badge-waiting';
             }
-            Utils.log('⏹ Automação finalizada');
+            if (wasRunning) Utils.log('⏹ Automação finalizada');
         }
     },
 
@@ -139,10 +140,53 @@ export const UI = {
                 <span class="status-badge ${statusClass}">${statusText}</span>
             </td>
             <td style="text-align: right;">
-                <button class="btn btn-secondary" style="padding: 2px 6px; font-size: 10px;" onclick="Utils.log('Detalhes: ' + '${result.errorMessage || 'Sem erros'}')">Ver</button>
+                <button class="btn btn-secondary btn-view-detail" style="padding: 2px 6px; font-size: 10px;">Ver</button>
             </td>
         `;
+        const viewBtn = row.querySelector('.btn-view-detail');
+        if (viewBtn) {
+            const detailMsg = result.errorMessage || (result.success ? 'Execução concluída sem erros.' : 'Falha sem mensagem detalhada.');
+            viewBtn.addEventListener('click', () => {
+                Utils.log(`Detalhes (${result.siteName}): ${detailMsg}`);
+                this.showExecutionDetailModal(result, detailMsg);
+            });
+        }
         tbody.appendChild(row);
+    },
+
+    showExecutionDetailModal(result, detailMsg) {
+        let modal = document.getElementById('executionDetailModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'executionDetailModal';
+            modal.className = 'modal-overlay';
+            modal.style.zIndex = '10000';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 520px;">
+                    <div class="modal-header">
+                        <h3 id="detailModalTitle">Detalhes da Execução</h3>
+                        <button class="btn btn-secondary" id="detailModalCloseX">×</button>
+                    </div>
+                    <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px;">
+                        <div id="detailModalMeta" style="font-size: 12px; color: #64748b;"></div>
+                        <pre id="detailModalBody" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-size: 12px; white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow-y: auto; margin: 0; color: #1e293b;"></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="detailModalCloseBtn">Fechar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            const close = () => { modal.style.display = 'none'; };
+            modal.querySelector('#detailModalCloseX').onclick = close;
+            modal.querySelector('#detailModalCloseBtn').onclick = close;
+            modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+        }
+
+        modal.querySelector('#detailModalTitle').textContent = `${result.success ? '✅' : '❌'} ${result.siteName || 'Site'}`;
+        modal.querySelector('#detailModalMeta').textContent = `Status: ${result.success ? 'SUCESSO' : 'ERRO'}${result.failureCategory ? ` | Categoria: ${result.failureCategory}` : ''}`;
+        modal.querySelector('#detailModalBody').textContent = detailMsg;
+        modal.style.display = 'flex';
     },
 
     // Estado interno para rastrear o site atual no workflow

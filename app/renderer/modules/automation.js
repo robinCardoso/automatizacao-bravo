@@ -5,6 +5,11 @@ import { UI } from './ui.js';
 
 export const Automation = {
     async startAutomation() {
+        if (State.isRunning) {
+            Utils.showNotification('Já existe uma automação em execução.', 'warning');
+            return;
+        }
+
         const selector = document.getElementById('mainPresetSelector');
         const presetId = selector ? selector.value : null;
 
@@ -13,15 +18,10 @@ export const Automation = {
             return;
         }
 
+        UI.toggleButtons(true);
+
         try {
             Utils.log(`🔄 Iniciando automação com o preset: ${selector.options[selector.selectedIndex].text}`);
-
-            // Atualiza UI para modo execução
-            const auditStatus = document.getElementById('auditStatus');
-            if (auditStatus) {
-                auditStatus.textContent = 'Executando...';
-                auditStatus.className = 'status-badge badge-running';
-            }
 
             // Limpa o resumo visual e o dashboard antes de começar
             const summarySteps = document.getElementById('summarySteps');
@@ -45,24 +45,35 @@ export const Automation = {
             }
 
             const result = await window.electronAPI.startAutomation(automationOptions);
-            Utils.log(`✅ ${result.message}`);
+            if (!result?.success) {
+                Utils.log(`⚠️ ${result?.message || 'Não foi possível iniciar a automação.'}`);
+                Utils.showNotification(result?.message || 'Não foi possível iniciar a automação.', 'warning');
+                UI.toggleButtons(false);
+                return;
+            }
 
-            UI.toggleButtons(true);
+            Utils.log(`✅ ${result.message}`);
         } catch (error) {
+            UI.toggleButtons(false);
             Utils.log(`❌ Erro ao iniciar automação: ${error}`);
             Utils.showNotification(`Erro: ${error}`, 'error');
         }
     },
 
     async stopAutomation() {
+        const stopBtn = document.getElementById('stopBtn');
+        if (stopBtn) stopBtn.disabled = true;
+
         try {
-            Utils.log('🛑 Solicitando parada da automação...');
+            Utils.log('🛑 [PANIC] Solicitando parada imediata da automação...');
             const result = await window.electronAPI.stopAutomation();
-            Utils.log(`✅ ${result.message}`);
-            UI.toggleButtons(false);
+            Utils.log(`✅ ${result?.message || 'Automação parada.'}`);
+            Utils.showNotification('Automação interrompida!', 'warning');
         } catch (error) {
             Utils.log(`❌ Erro ao parar automação: ${error}`);
             Utils.showNotification(`Erro: ${error}`, 'error');
+        } finally {
+            UI.toggleButtons(false);
         }
     }
 };

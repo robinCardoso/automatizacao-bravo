@@ -684,7 +684,7 @@ export const Sites = {
         }
     },
 
-    async savePresetSteps() {
+    async savePresetSteps(silent = false) {
         if (!State.editingPresetId) return;
         const container = document.getElementById('presetStepsList');
         if (!container) return;
@@ -711,9 +711,12 @@ export const Sites = {
             if (!preset) throw new Error('Preset não encontrado');
             preset.steps = steps;
             await window.electronAPI.savePreset(preset);
-            Utils.showNotification('Passos do preset salvos! Alteração vale para todos os sites.', 'success');
+            if (!silent) {
+                Utils.showNotification('Passos do preset salvos! Alteração vale para todos os sites.', 'success');
+            }
         } catch (error) {
             Utils.showNotification(`Erro ao salvar passos do preset: ${error.message}`, 'error');
+            throw error;
         }
     },
 

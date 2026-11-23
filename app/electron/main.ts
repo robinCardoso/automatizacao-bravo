@@ -262,12 +262,23 @@ function registerIpcHandlers(): void {
   });
 
   ipcMain.handle('get-automation-status', async () => {
-    return 'PARADA';
+    return automationEngine.getIsRunning() ? 'EXECUTANDO' : 'PARADA';
   });
 
   ipcMain.handle('start-automation', async (event, config) => {
     try {
+      if (automationEngine.getIsRunning()) {
+        return { success: false, message: 'Automação já está em execução' };
+      }
+
       const webContents = event.sender;
+
+      // Notifica todas as janelas que a automação iniciou
+      BrowserWindow.getAllWindows().forEach(win => {
+        if (!win.isDestroyed()) {
+          win.webContents.send('automation-started');
+        }
+      });
 
       // Rodar em modo visível para que o usuário possa ver o login acontecendo
       // Futuramente isso pode ser uma configuração
@@ -275,9 +286,16 @@ function registerIpcHandlers(): void {
         presetId: config.presetId,
         siteIds: config.siteIds
       }).then((results: any) => {
-        webContents.send('automation-complete', { results });
+        if (!webContents.isDestroyed()) {
+          webContents.send('automation-complete', {
+            results,
+            cancelled: automationEngine.wasAborted()
+          });
+        }
       }).catch((error: any) => {
-        webContents.send('automation-error', error.message);
+        if (!webContents.isDestroyed()) {
+          webContents.send('automation-error', error.message);
+        }
       });
 
       return { success: true, message: 'Motor de automação iniciado' };

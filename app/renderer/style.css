@@ -450,6 +450,16 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: none;
 }
 
+.btn-start:disabled,
+.btn-start:disabled:hover,
+.btn-start:disabled:active {
+    background: #bdc3c7;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+    opacity: 0.7;
+}
+
 .btn-stop {
     background: #e74c3c;
     color: white;

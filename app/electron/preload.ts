@@ -51,6 +51,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   quitAndInstall: () => ipcRenderer.invoke('quit-and-install'),
 
   // Eventos
+  onAutomationStarted: (callback: () => void) =>
+    ipcRenderer.on('automation-started', () => callback()),
+  onAutomationStopped: (callback: (data: any) => void) =>
+    ipcRenderer.on('automation-stopped', (_event, data) => callback(data)),
   onAutomationProgress: (callback: (data: any) => void) =>
     ipcRenderer.on('automation-progress', (_event, data) => callback(data)),
   onAutomationComplete: (callback: (data: any) => void) =>

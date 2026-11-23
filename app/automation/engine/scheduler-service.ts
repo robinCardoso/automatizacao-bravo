@@ -121,13 +121,24 @@ class SchedulerService {
             automationLogger.info(`[Scheduler] Disparando execução agendada para: ${preset.name}`);
 
             try {
+              BrowserWindow.getAllWindows().forEach(win => {
+                if (!win.isDestroyed()) {
+                  win.webContents.send('automation-started');
+                }
+              });
+
               // Tenta rodar. Se o engine estiver ocupado, ele vai disparar um erro que capturaremos.
               const results = await automationEngine.runAutomation({ presetId: preset.id });
 
               // Execuções agendadas não passam pelo IPC start-automation;
               // portanto precisamos notificar manualmente o renderer quando finalizar.
               BrowserWindow.getAllWindows().forEach(win => {
-                win.webContents.send('automation-complete', { results });
+                if (!win.isDestroyed()) {
+                  win.webContents.send('automation-complete', {
+                    results,
+                    cancelled: automationEngine.wasAborted()
+                  });
+                }
               });
 
               // Após sucesso, calcula a próxima data

@@ -21,7 +21,8 @@ export const Presets = {
             const selector = document.getElementById('mainPresetSelector');
             if (!selector) return;
 
-            const currentValue = selector.value;
+            const savedPresetId = localStorage.getItem('bravo_selected_preset') || '';
+            const currentValue = selector.value || savedPresetId;
 
             // Limpa exceto a primeira opção
             selector.innerHTML = '<option value="">Selecione um Preset...</option>';
@@ -33,10 +34,18 @@ export const Presets = {
                 selector.appendChild(option);
             });
 
-            // Tenta manter a seleção anterior
-            if (currentValue) {
+            // Tenta manter a seleção anterior (ou restaurar a última salva)
+            if (currentValue && presets.some(p => p.id === currentValue)) {
                 selector.value = currentValue;
-                this.updateUFSelector(); // Atualiza UFs se houver seleção
+                localStorage.setItem('bravo_selected_preset', currentValue);
+                await this.updateUFSelector(); // Atualiza UFs mantendo seleção
+            } else {
+                const vendasPreset = presets.find(p => (p.type || '').toLowerCase() === 'vendas');
+                if (!currentValue && vendasPreset) {
+                    selector.value = vendasPreset.id;
+                    localStorage.setItem('bravo_selected_preset', vendasPreset.id);
+                    await this.updateUFSelector();
+                }
             }
         } catch (error) {
             console.error('Erro ao carregar presets no seletor principal:', error);
@@ -51,6 +60,14 @@ export const Presets = {
             const presetId = document.getElementById('mainPresetSelector')?.value;
             const ufSelector = document.getElementById('mainUFSelector');
             if (!ufSelector) return;
+
+            if (presetId) {
+                localStorage.setItem('bravo_selected_preset', presetId);
+            } else {
+                localStorage.removeItem('bravo_selected_preset');
+            }
+
+            const previousUF = ufSelector.value || localStorage.getItem('bravo_selected_uf') || '';
 
             // Reseta para padrão
             ufSelector.innerHTML = '<option value="">TODAS AS EMPRESAS</option>';
@@ -70,6 +87,17 @@ export const Presets = {
                     option.textContent = `${site.uf || '??'} - ${site.name}`;
                     ufSelector.appendChild(option);
                 });
+
+                // Restaura a UF selecionada anteriormente (ou SC por padrão se existir)
+                if (previousUF && sortedSites.some(s => s.id === previousUF)) {
+                    ufSelector.value = previousUF;
+                } else if (!localStorage.getItem('bravo_selected_uf_cleared')) {
+                    const scSite = sortedSites.find(s => (s.uf || '').toUpperCase() === 'SC');
+                    if (scSite) {
+                        ufSelector.value = scSite.id;
+                        localStorage.setItem('bravo_selected_uf', scSite.id);
+                    }
+                }
             }
         } catch (error) {
             console.error('Erro ao atualizar seletor de UFs:', error);
@@ -232,8 +260,10 @@ export const Presets = {
             if (id) {
                 const existingPresets = await window.electronAPI.getPresets();
                 const existing = existingPresets.find(p => p.id === id);
-                if (existing && existing.sites) {
-                    presetData.sites = existing.sites;
+                if (existing) {
+                    if (existing.sites) presetData.sites = existing.sites;
+                    if (existing.steps) presetData.steps = existing.steps;
+                    if (existing.lastUsedAt) presetData.lastUsedAt = existing.lastUsedAt;
                 }
             }
 

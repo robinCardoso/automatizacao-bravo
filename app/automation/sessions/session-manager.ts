@@ -160,18 +160,26 @@ export class SessionManager {
   }
 
   /**
-   * Fecha todas as sessões ativas
+   * Fecha todas as sessões ativas (com timeout de segurança para não travar panic stop)
    */
   async closeActiveSessions(): Promise<void> {
     sessionLogger.info('Encerrando todos os contextos de navegador ativos...');
 
-    for (const [siteId, context] of this.activeSessions) {
-      try {
-        await context.close();
-      } catch (e) { }
-    }
-
+    const entries = Array.from(this.activeSessions.entries());
     this.activeSessions.clear();
+
+    await Promise.allSettled(
+      entries.map(async ([siteId, context]) => {
+        try {
+          await Promise.race([
+            context.close(),
+            new Promise<void>((resolve) => setTimeout(resolve, 2500))
+          ]);
+        } catch (e) {
+          sessionLogger.warn(`Erro ao fechar sessão ${siteId}: ${(e as Error)?.message ?? e}`);
+        }
+      })
+    );
   }
 
   /**

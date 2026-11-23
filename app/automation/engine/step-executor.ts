@@ -48,9 +48,9 @@ export class StepExecutor {
     this.defaultRetries = defaultRetries;
     this.actionDelay = actionDelay;
     this.customBasePath = configManager.resolvePath(customBasePath);
-    this.selectorResolver = new SelectorResolver(page);
-    this.currentPreset = currentPreset;
     this.checkCancellation = checkCancellation;
+    this.selectorResolver = new SelectorResolver(page, defaultTimeout, checkCancellation);
+    this.currentPreset = currentPreset;
 
     // NOVO: Garante que a pasta base exista logo no início
     if (this.customBasePath) {
@@ -176,6 +176,59 @@ export class StepExecutor {
     await this.page.waitForTimeout(2000);
   }
 
+  private async clickElementResilient(element: any, timeout: number): Promise<void> {
+    if (this.checkCancellation?.()) {
+      throw new Error('Execução cancelada pelo usuário');
+    }
+
+    await element.scrollIntoViewIfNeeded().catch(() => {});
+
+    try {
+      await element.click({ timeout: Math.min(timeout, 8000) });
+    } catch (error: any) {
+      if (this.checkCancellation?.()) {
+        throw new Error('Execução cancelada pelo usuário');
+      }
+
+      const msg = error?.message || '';
+      const isInterceptedOrTimeout =
+        msg.includes('intercepts pointer events') ||
+        msg.includes('Timeout') ||
+        msg.includes('not receiving pointer events');
+
+      if (!isInterceptedOrTimeout) {
+        throw error;
+      }
+
+      automationLogger.warn(`[Click-Resilient] Clique padrão bloqueado por sobreposição/timeout (${msg.split('\n')[0]}). Executando clique direto via DOM...`);
+      await element.evaluate((el: HTMLElement) => {
+        const clickable = (el.tagName === 'LI' ? el.querySelector('a, button') : null) as HTMLElement | null;
+        (clickable || el).click();
+      });
+    }
+  }
+
+  private async hoverElementResilient(element: any, timeout: number): Promise<void> {
+    if (this.checkCancellation?.()) {
+      throw new Error('Execução cancelada pelo usuário');
+    }
+
+    await element.scrollIntoViewIfNeeded().catch(() => {});
+
+    try {
+      await element.hover({ timeout: Math.min(timeout, 8000) });
+    } catch (error: any) {
+      if (this.checkCancellation?.()) {
+        throw new Error('Execução cancelada pelo usuário');
+      }
+
+      automationLogger.warn(`[Hover-Resilient] Hover padrão bloqueado (${error?.message?.split('\n')[0] || 'erro'}). Forçando hover/eventos...`);
+      await element.hover({ force: true, timeout: 4000 }).catch(() => {});
+      await element.dispatchEvent('mouseenter').catch(() => {});
+      await element.dispatchEvent('mouseover').catch(() => {});
+    }
+  }
+
   private async executeClick(step: Step, timeout: number, retries: number): Promise<void> {
     if (!step.selector) {
       throw new Error('Seletor obrigatório para step click');
@@ -183,7 +236,7 @@ export class StepExecutor {
 
     const element = await this.selectorResolver.resolveSelector(step.selector, retries);
     automationLogger.debug('Clicando no elemento');
-    await element.click({ timeout });
+    await this.clickElementResilient(element, timeout);
 
     // Aguarda 200ms para garantir que eventos JS sejam processados
     await this.page.waitForTimeout(200);
@@ -196,7 +249,7 @@ export class StepExecutor {
 
     const element = await this.selectorResolver.resolveSelector(step.selector, retries);
     automationLogger.debug('Passando o mouse no elemento');
-    await element.hover({ timeout });
+    await this.hoverElementResilient(element, timeout);
   }
 
   private async executeFill(step: Step, timeout: number, retries: number): Promise<void> {
@@ -341,12 +394,26 @@ export class StepExecutor {
     const element = await this.selectorResolver.resolveSelector(step.selector, retries);
     automationLogger.debug(`Selecionando opção: ${step.value}`);
 
-    // Tenta selecionar por texto (label) primeiro, depois por value
+    // Verifica se o <select> já contém a opção por value ou label (case-insensitive)
+    const matchedValue = await element.evaluate((selectEl: HTMLSelectElement, target: string) => {
+      const normalized = target.trim().toLowerCase();
+      const options = Array.from(selectEl.options || []);
+      const exact = options.find(o => o.value === target || o.text.trim() === target);
+      if (exact) return exact.value;
+      const ci = options.find(o => o.value.toLowerCase() === normalized || o.text.trim().toLowerCase() === normalized);
+      return ci ? ci.value : null;
+    }, step.value).catch(() => null);
+
+    if (matchedValue !== null) {
+      await element.selectOption(matchedValue, { timeout });
+      return;
+    }
+
+    // Fallback caso as opções ainda estejam sendo carregadas dinamicamente
     try {
-      await element.selectOption({ label: step.value }, { timeout });
+      await element.selectOption(step.value, { timeout: Math.min(timeout, 5000) });
     } catch {
-      // Se falhar, tenta por value
-      await element.selectOption({ value: step.value }, { timeout });
+      await element.selectOption({ label: step.value }, { timeout });
     }
   }
 
@@ -884,7 +951,7 @@ export class StepExecutor {
 
     // Clica no elemento que inicia o download
     automationLogger.debug('Iniciando download');
-    await element.click({ timeout });
+    await this.clickElementResilient(element, timeout);
 
     // Aguarda o download
     const download = await downloadPromise;

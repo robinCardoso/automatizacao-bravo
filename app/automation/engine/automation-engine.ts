@@ -57,9 +57,19 @@ export class AutomationEngine {
   private page: Page | null = null;
   private stepExecutor: StepExecutor | null = null;
   private isRunning: boolean = false;
+  private abortedByUser: boolean = false;
+  private abortController: AbortController | null = null;
   private startTime: number = 0;
 
   constructor() { }
+
+  getIsRunning(): boolean {
+    return this.isRunning;
+  }
+
+  wasAborted(): boolean {
+    return this.abortedByUser;
+  }
 
   /**
    * Abre o navegador em modo visível para login manual ou resolução de CAPTCHA
@@ -95,6 +105,8 @@ export class AutomationEngine {
     }
 
     this.isRunning = true;
+    this.abortedByUser = false;
+    this.abortController = new AbortController();
     this.startTime = Date.now();
     const resultsMap = new Map<string, AutomationResult>();
     let currentPreset: Preset | undefined;
@@ -176,12 +188,14 @@ export class AutomationEngine {
       return finalResults;
     } finally {
       clearTimeout(timeoutHandle);
+      const wasAborted = this.abortedByUser;
       await this.cleanup();
       this.isRunning = false;
-      automationLogger.info('Motor de automação finalizado');
+      this.abortController = null;
+      automationLogger.info(wasAborted ? 'Motor de automação interrompido pelo usuário (PANIC)' : 'Motor de automação finalizado');
 
       const finalResults = Array.from(resultsMap.values());
-      if (currentPreset) {
+      if (currentPreset && !wasAborted) {
         notificationService.sendAutomationSummary(currentPreset.name, finalResults).catch((err: Error) => {
           automationLogger.error(`[Notification] Erro ao disparar resumo: ${err.message}`);
         });
@@ -262,21 +276,48 @@ export class AutomationEngine {
           webContents.send('site-complete', result);
         }
       } finally {
-        await sessionManager.closeSession(site.id);
+        await sessionManager.closeSession(site.id).catch(() => {});
         
-        // Consolidação incremental (usa o estado atual do resultsMap)
-        if (consolidationEvery > 0 && (index + 1) % consolidationEvery === 0) {
-          await this.triggerMasterConsolidation(Array.from(resultsMap.values()), currentPreset);
+        // Consolidação incremental (apenas se não foi abortado e houve algum sucesso)
+        if (this.isRunning && consolidationEvery > 0 && (index + 1) % consolidationEvery === 0) {
+          const currentResults = Array.from(resultsMap.values());
+          if (currentResults.some(r => r.success)) {
+            await this.triggerMasterConsolidation(currentResults, currentPreset);
+          }
         }
       }
     }
 
-    // Consolidação final da fase
-    await this.triggerMasterConsolidation(Array.from(resultsMap.values()), currentPreset);
+    // Consolidação final da fase: apenas se não foi cancelado e ao menos 1 site teve sucesso
+    const phaseResults = Array.from(resultsMap.values());
+    if (this.isRunning && phaseResults.some(r => r.success)) {
+      await this.triggerMasterConsolidation(phaseResults, currentPreset);
+    } else if (!this.isRunning) {
+      automationLogger.info('[Engine] Consolidação ignorada: execução interrompida pelo usuário.');
+    } else {
+      automationLogger.info('[Engine] Consolidação ignorada: nenhum site concluído com sucesso nesta fase.');
+    }
   }
 
   private async wait(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    if (!this.isRunning || this.abortController?.signal.aborted) {
+      return;
+    }
+
+    return new Promise<void>(resolve => {
+      const signal = this.abortController?.signal;
+      const timer = setTimeout(() => {
+        signal?.removeEventListener('abort', onAbort);
+        resolve();
+      }, ms);
+
+      const onAbort = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+
+      signal?.addEventListener('abort', onAbort, { once: true });
+    });
   }
 
   /**
@@ -354,16 +395,25 @@ export class AutomationEngine {
       const config = configManager.getConfig();
       const headless = config.headless !== undefined ? config.headless : true;
 
+      if (!this.isRunning) throw new Error('Execução cancelada pelo usuário');
+
       this.emitProgress({
         siteId: site.id, siteName: site.name, currentStep: 0, totalSteps: stepsToRun.length,
         stepType: 'goto', message: `🌐 Abrindo navegador...`, percentage: 0
       }, attempt);
 
       const context = await sessionManager.getSession(site.id, headless);
+      if (!this.isRunning) {
+        await sessionManager.closeSession(site.id).catch(() => {});
+        throw new Error('Execução cancelada pelo usuário');
+      }
+
       let page = context.pages()[0] || await context.newPage();
 
       if (!(await this.isAlreadyLoggedIn(page, site))) {
+        if (!this.isRunning) throw new Error('Execução cancelada pelo usuário');
         const loginResult = await loginHandler.performLogin(site, context, headless);
+        if (!this.isRunning) throw new Error('Execução cancelada pelo usuário');
         if (!loginResult.success) throw new Error(`Falha no login: ${loginResult.errorMessage}`);
       }
 
@@ -375,6 +425,7 @@ export class AutomationEngine {
       );
 
       for (let i = 0; i < stepsToRun.length; i++) {
+        if (!this.isRunning) throw new Error('Execução cancelada pelo usuário');
         const step = stepsToRun[i];
         if (await loginHandler.checkSessionExpired(page, site)) {
           const reauthResult = await loginHandler.reauthenticate(site, context, headless);
@@ -435,8 +486,20 @@ export class AutomationEngine {
   }
 
   async stopAutomation() {
+    automationLogger.warn('[PANIC STOP] Parada de emergência solicitada pelo usuário.');
     this.isRunning = false;
+    this.abortedByUser = true;
+    this.abortController?.abort();
+
     await this.cleanup();
+
+    BrowserWindow.getAllWindows().forEach(win => {
+      if (!win.isDestroyed()) {
+        win.webContents.send('automation-stopped', {
+          message: 'Automação interrompida pelo usuário (PANIC).'
+        });
+      }
+    });
   }
 
   private async cleanup() {

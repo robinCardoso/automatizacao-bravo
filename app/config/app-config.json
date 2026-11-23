@@ -2,7 +2,7 @@
   "defaultTimeout": 30000,
   "defaultRetries": 3,
   "actionDelay": 1000,
-  "headless": true,
+  "headless": false,
   "dashboardDefaultYearMode": "current",
   "schedulerEnabled": false,
   "presets": [
@@ -13,50 +13,12 @@
         {
           "id": "site-1769612315557",
           "name": "Bravo SC",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_sc/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_sc/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
-          "steps": [
-            {
-              "type": "hover",
-              "selector": "#menu__ferramentas",
-              "continueOnError": false,
-              "skipStep": false
-            },
-            {
-              "type": "hover",
-              "selector": "#menu__ferramentas__exportar",
-              "continueOnError": false,
-              "skipStep": false
-            },
-            {
-              "type": "hover",
-              "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false,
-              "skipStep": false
-            },
-            {
-              "type": "click",
-              "selector": "#menu__ferramentas__exportar__item_venda_excel",
-              "continueOnError": false,
-              "skipStep": false
-            },
-            {
-              "type": "fillDateRange",
-              "selector": "#dataIni,#dataFim",
-              "value": "[MES_ATUAL]",
-              "continueOnError": false,
-              "skipStep": false
-            },
-            {
-              "type": "download",
-              "selector": "input.vermelho",
-              "continueOnError": false,
-              "skipStep": false
-            }
-          ],
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_sc/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_sc/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
+          "steps": [],
           "downloadPath": "C:\\Relatorios\\Vendas\\SC-Vendas",
           "reportType": "VENDA",
           "uf": "SC"
@@ -64,11 +26,11 @@
         {
           "id": "site-1769780871859",
           "name": "Bravo RS",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_rs/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rs/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_rs/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_rs/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -115,11 +77,11 @@
         {
           "id": "site-1769784827401",
           "name": "Bravo PR",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_pr/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_pr/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_pr/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_pr/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -166,11 +128,11 @@
         {
           "id": "site-1769795887712",
           "name": "Bravo SP",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_sp/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_sp/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_sp/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_sp/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -217,11 +179,11 @@
         {
           "id": "site-1769795919422",
           "name": "Bravo MG",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_mg/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_mg/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_mg/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_mg/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -268,11 +230,11 @@
         {
           "id": "site-1769795940927",
           "name": "Bravo RJ",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_rj/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rj/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_rj/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_rj/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -319,11 +281,11 @@
         {
           "id": "site-1769799652545",
           "name": "Bravo MT",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_mt/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_mt/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_mt/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_mt/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -370,11 +332,11 @@
         {
           "id": "site-1769802176473",
           "name": "Bravo GO",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_go/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_go/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_go/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_go/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -421,11 +383,11 @@
         {
           "id": "site-1769802202205",
           "name": "Bravo ES",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_es/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_es/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_es/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_es/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -472,11 +434,11 @@
         {
           "id": "site-1769802224666",
           "name": "Bravo PE",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_pe/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_pe/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_pe/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_pe/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -523,11 +485,11 @@
         {
           "id": "site-1769802254594",
           "name": "Bravo RN",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_rn/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rn/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_rn/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_rn/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -574,11 +536,11 @@
         {
           "id": "site-1769802280324",
           "name": "Bravo RO",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_ro/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ro/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_ro/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_ro/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -625,11 +587,11 @@
         {
           "id": "site-1769802352015",
           "name": "Bravo BA",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_ba/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ba/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_ba/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_ba/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -676,11 +638,11 @@
         {
           "id": "site-1769802378319",
           "name": "Bravo MA",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_ma/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ma/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_ma/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_ma/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -732,19 +694,19 @@
       "steps": [
         {
           "type": "hover",
-          "selector": "#menu__ferramentas",
-          "continueOnError": false,
-          "skipStep": false
-        },
-        {
-          "type": "hover",
-          "selector": "#menu__ferramentas__exportar",
+          "selector": "span:has-text(\"Ferramentas\")",
           "continueOnError": false,
           "skipStep": false
         },
         {
           "type": "click",
-          "selector": "#menu__ferramentas__exportar__item_venda_excel",
+          "selector": "a:has-text(\"Exportar\")",
+          "continueOnError": false,
+          "skipStep": false
+        },
+        {
+          "type": "click",
+          "selector": "a:has-text(\"Itens de Venda Excel\")",
           "continueOnError": false,
           "skipStep": false
         },
@@ -765,7 +727,7 @@
         {
           "type": "fillDateRange",
           "selector": "#dataIni,#dataFim",
-          "value": "[PERIODO:2026-02]",
+          "value": "[MES_ATUAL]",
           "continueOnError": false,
           "skipStep": false
         },
@@ -790,7 +752,7 @@
         "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-01-28T15:56:23.142Z",
-      "lastUsedAt": "2026-04-01T13:32:04.330Z",
+      "lastUsedAt": "2026-11-23T13:14:38.530Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -812,11 +774,11 @@
         {
           "id": "site-1770041833062",
           "name": "Bravo SC",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_sc/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_sc/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_sc/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_sc/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [],
           "downloadPath": "C:\\Relatorios\\Pedidos\\SC-Pedidos",
           "reportType": "PEDIDO",
@@ -825,11 +787,11 @@
         {
           "id": "site-1770221415146",
           "name": "Bravo RS",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_rs/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rs/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_rs/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_rs/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -883,11 +845,11 @@
         {
           "id": "site-1770221521828",
           "name": "Bravo PR",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_pr/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_pr/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_pr/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_pr/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -941,11 +903,11 @@
         {
           "id": "site-1770222076217",
           "name": "Bravo SP",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_sp/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_sp/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_sp/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_sp/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -999,11 +961,11 @@
         {
           "id": "site-1770222750416",
           "name": "Bravo MG",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_mg/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_mg/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_mg/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_mg/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -1057,11 +1019,11 @@
         {
           "id": "site-1770224894643",
           "name": "Bravo MT",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_mt/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_mt/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_mt/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_mt/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -1115,11 +1077,11 @@
         {
           "id": "site-1770224952253",
           "name": "Bravo GO",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_go/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_go/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_go/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_go/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -1173,11 +1135,11 @@
         {
           "id": "site-1770224972557",
           "name": "Bravo PE",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_pe/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_pe/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_pe/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_pe/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -1231,11 +1193,11 @@
         {
           "id": "site-1770224991829",
           "name": "Bravo RN",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_rn/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rn/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_rn/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_rn/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -1289,11 +1251,11 @@
         {
           "id": "site-1770225010934",
           "name": "Bravo RO",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_ro/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ro/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_ro/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_ro/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -1347,11 +1309,11 @@
         {
           "id": "site-1770225074823",
           "name": "Bravo ES",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_es/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_es/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_es/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_es/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -1405,11 +1367,11 @@
         {
           "id": "site-1770225403080",
           "name": "Bravo RJ",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_rj/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_rj/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_rj/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_rj/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [
             {
               "type": "hover",
@@ -1463,11 +1425,11 @@
         {
           "id": "site-1770225421491",
           "name": "Bravo BA",
-          "url": "https://alpha.bravoerp.com.br/redeuniao_ba/erp/login/index",
-          "loginUrl": "https://alpha.bravoerp.com.br/redeuniao_ba/erp/login/index",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='senha']",
-          "loginButton": "#btEntrar",
+          "url": "https://002.bravoerp.com.br:8201/redeuniao_ba/ui-v3/run/web/erp/index/Index.php",
+          "loginUrl": "https://002.bravoerp.com.br:8201/redeuniao_ba/ui-v3/run/web/erp/index/Index.php",
+          "usernameField": "[id=\"loginRequestData[email]\"]",
+          "passwordField": "[id=\"loginRequestData[password]\"]",
+          "loginButton": "#entrar",
           "steps": [],
           "downloadPath": "C:\\Relatorios\\Pedidos\\BA-Pedidos",
           "reportType": "PEDIDO",
@@ -1481,19 +1443,19 @@
       "steps": [
         {
           "type": "hover",
-          "selector": "#menu__monitores",
+          "selector": "span:has-text(\"Monitores\")",
           "continueOnError": false,
           "skipStep": false
         },
         {
           "type": "click",
-          "selector": "#menu__monitores__pedidos",
+          "selector": "a:has-text(\"Pedidos de Venda\")",
           "continueOnError": false,
           "skipStep": false
         },
         {
           "type": "click",
-          "selector": "#abaTabs a:has-text(\"Itens\")",
+          "selector": "a:has-text(\"Itens\")",
           "continueOnError": false,
           "skipStep": false
         },
@@ -1551,7 +1513,7 @@
         "subGroup": "Sub_Grupo"
       },
       "createdAt": "2026-02-02T12:34:27.670Z",
-      "lastUsedAt": "2026-05-14T18:49:12.926Z",
+      "lastUsedAt": "2026-11-23T14:05:29.418Z",
       "schedule": {
         "enabled": true,
         "mode": "fixed",
@@ -1573,8 +1535,8 @@
       "host": "smtp.gmail.com",
       "port": 465,
       "secure": true,
-      "user": "ss:7631305a9149a1e4bd0ac6fbfda940cc52b40687e43a9a908998a8ffa154d45d9424a561001d0ec10d79d4de882aa01feaa18e1098e22644a36691762689c1",
-      "pass": "ss:763130459a524732605d96152dd64967095e38ebae42f942d64fdcda8045ba6e9ed3c08ceb0dfc188deda1374f820e4fbd19",
+      "user": "ss:76313057a510fe290ecc7d94ddf481d5befabde0acbaeb778dafda417352a9fe27d36268857a5fba7f86b9d28e096a943b369cccfed234af509a34e061db6b",
+      "pass": "ss:7631304f1cd52f1709ccb390fb163e14e704ee93f87f09dd5d6ced5e04415041dbf8984ceb9c99226c4866665800afa8a14d",
       "authType": "login",
       "clientId": "",
       "clientSecret": "",

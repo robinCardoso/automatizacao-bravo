@@ -4,10 +4,12 @@ import { automationLogger } from '../../config/logger';
 export class SelectorResolver {
   private page: Page;
   private timeout: number;
+  private checkCancellation?: () => boolean;
 
-  constructor(page: Page, timeout: number = 30000) {
+  constructor(page: Page, timeout: number = 30000, checkCancellation?: () => boolean) {
     this.page = page;
     this.timeout = timeout;
+    this.checkCancellation = checkCancellation;
   }
 
   /**
@@ -18,27 +20,41 @@ export class SelectorResolver {
     const selectors = Array.isArray(selector) ? selector : [selector];
     
     for (let attempt = 0; attempt < retries; attempt++) {
+      if (this.checkCancellation?.()) {
+        throw new Error('Execução cancelada pelo usuário');
+      }
+
       for (const sel of selectors) {
+        if (this.checkCancellation?.()) {
+          throw new Error('Execução cancelada pelo usuário');
+        }
+
         try {
           automationLogger.debug(`Tentando seletor: ${sel} (tentativa ${attempt + 1}/${retries})`);
           
-          const locator = this.page.locator(sel);
-          // Verifica se o elemento existe e é visível
-          await locator.first().waitFor({ 
+          const locator = this.page.locator(sel).filter({ visible: true }).first();
+          // Verifica se existe ao menos um elemento visível correspondente (ignora duplicados ocultos no DOM)
+          await locator.waitFor({ 
             state: 'visible', 
             timeout: this.timeout / selectors.length 
           });
           
           automationLogger.debug(`Seletor resolvido com sucesso: ${sel}`);
-          return locator.first();
+          return locator;
           
         } catch (error: any) {
+          if (this.checkCancellation?.()) {
+            throw new Error('Execução cancelada pelo usuário');
+          }
           automationLogger.debug(`Seletor falhou: ${sel} - ${error.message}`);
           continue;
         }
       }
       
       if (attempt < retries - 1) {
+        if (this.checkCancellation?.()) {
+          throw new Error('Execução cancelada pelo usuário');
+        }
         automationLogger.debug(`Todos os seletores falharam na tentativa ${attempt + 1}, tentando novamente...`);
         await this.page.waitForTimeout(1000); // Pequena espera antes de tentar novamente
       }
